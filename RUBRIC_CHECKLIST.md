@@ -9,7 +9,7 @@
 | 3 | So sánh Fauxton với GUI Tool khác | 0,5 | Bảng ưu/nhược, khác biệt phạm vi CSDL | Tài liệu/nguồn chính thức PASS |
 | 4 | Điểm mạnh và loại ứng dụng phù hợp | 0,5 | Lập luận liên quan nghiệp vụ đơn/giao hàng | Tài liệu PASS |
 | 5a | Tạo database | 0,5 | DB trong Fauxton + script tái lập | API/script thật PASS; ảnh NOT RUN |
-| 5b | Insert dữ liệu đầy đủ | 0,5 | JSON seed + ảnh document | Seed 100 tài liệu PASS; ảnh NOT RUN |
+| 5b | Insert dữ liệu đầy đủ | 0,5 | JSON seed + ảnh document | P5 seed/tham chiếu/tổng PASS; P6 consistency trạng thái FAIL (5 cặp), ảnh NOT RUN |
 | 5c | Dữ liệu đáp ứng truy vấn cơ bản | 0,5 | Query + kết quả minh chứng | 5 query API thật PASS |
 | 5d | Dữ liệu đáp ứng truy vấn nâng cao | 0,5 | Mango selector/index + kết quả | 5 query/explain/bookmark PASS |
 | 6 | Import/Export; Backup/Restore | 0,5 | Hướng dẫn, tệp demo + kết quả khôi phục | Snapshot logic/restore 104 doc PASS; backup toàn hệ thống NOT RUN |
@@ -20,8 +20,8 @@
 | 9b | Thao tác CSDL (CRUD, backup...) | 0,5 | CRUD, backup có kiểm thử | CRUD/revision + snapshot logic PASS |
 | 9c | Nghiệp vụ mô tả bài toán | 0,5 | Demo đơn hàng/giao hàng từ đầu đến cuối | Workflow/retry/outbox thật PASS |
 | 9d | Chức năng hỗ trợ khác | 0,5 | Thống kê, tìm kiếm, lọc, lịch sử... | Dashboard/Shipping/Mango UI/lịch sử PASS; ảnh NOT RUN |
-| 10a | Báo cáo đầy đủ, đúng định dạng, không sao chép | 0,5 | Word 50–60 trang | Chưa có file |
-| 10b | Báo cáo lưu loát, trả lời giảng viên | 0,5 | Kịch bản và tập dượt | Chưa kiểm chứng |
+| 10a | Báo cáo đầy đủ, đúng định dạng, không sao chép | 0,5 | Word 50–60 trang | Đã đọc 2 Word; 37 mục đề xuất sửa; layout sau sửa NOT RUN |
+| 10b | Báo cáo lưu loát, trả lời giảng viên | 0,5 | Kịch bản và tập dượt | P6 có kịch bản/câu hỏi; tập dượt NOT RUN |
 | 10c | Nộp đúng hạn Word, PowerPoint, source | 0,5 | Bộ file nộp | Chưa kiểm chứng |
 | 10d | Phân công nhóm rõ ràng và tích hợp | 0,5 | Bảng phân công, commit/PR, demo | Chưa kiểm chứng |
 | | **TỔNG** | **10,0** | | |
@@ -94,3 +94,15 @@ Kiểm tra quản trị bổ sung: `/_membership` trả HTTP 403 bằng tài kho
 - FAIL lịch sử: mật khẩu CouchDB đang cấu hình trùng toàn bộ literal trong blob dịch vụ trước P0; không in hoặc thử credential cũ. Việc bỏ hardcode ở mã hiện tại không hoàn tất thu hồi credential.
 - BLOCKED push: chủ repo cần thay/thu hồi credential và xác minh cấu hình mới; GitHub 404 chưa xác minh Private/quyền repo; phương án dấu vết lịch sử cần thống nhất riêng, không sửa commit P0–P5 trong phiên này.
 - PASS lại build/Razor, 49 smoke, 21 unit; audit unit 13 và workflow mock 10 assertion. Tích hợp mới với credential đã lộ NOT RUN; kết quả chức năng trước đó vẫn là bằng chứng lịch sử, không thay chứng nhận an toàn phát hành. Xem docs/RELEASE_READINESS.md.
+
+## Bổ sung P6 – 28/10/2026: audit báo cáo và dữ liệu
+
+Đính chính “ít nhất 3 công cụ” là ba chức năng Fauxton, không phải ba GUI. Đã soạn năm module trong docs/p6/FAUXTON_MODULES.md, bảng 16 đặc trưng bốn DB, so sánh Fauxton/Compass, bảo mật/phản biện và DEMO_DEFENSE. Nội dung tài liệu đã có; demo/ảnh không được coi PASS chỉ vì có kịch bản.
+
+- PASS mới: Solution/Razor; smoke 49; workflow/security unit 21; Git safety unit 13; đọc hai Word và giữ nguyên SHA256, regression Test-P6Review.py. Snapshot tracked-source sạch tại 1d88092 restore NuGet/build/Razor PASS; clone GitHub/máy khác NOT RUN.
+- FAIL mới: source Seed-Demo.py có 5 cặp Order confirmed–Delivery assigned lệch projection P4; 10 assigned thiếu shipperId. Không sửa seed/DB để che lỗi. PASS kiểm tra tham chiếu/tổng P5 không phủ định FAIL mới này; chưa xác nhận trạng thái DB hiện tại.
+- FAIL bảo mật phát hành: mật khẩu cấu hình trùng literal trong lịch sử. BLOCKED chạy lại integration có xác thực; không dùng credential lộ. Origin đúng; Private/quyền GitHub chưa xác minh. Không push.
+- PASS probe anonymous chỉ đọc: CouchDB 3.5.2, root/health 200; DB/_security/_membership và hai ID mẫu 401. Nội dung _security, server admin/single-node BLOCKED; HTTPS/GUI/replication mới NOT RUN.
+- Hai Word có bốn ID chung nhưng nội dung khác; trạng thái lỗi thời và tuyên bố chưa có app/roles đã được lập bảng 37 mục. Tài liệu đề xuất không ghi đè Word gốc. Định dạng TNR13/1,5 và 50–60 trang sau sửa chưa nghiệm thu.
+
+Xem docs/p6/TECHNICAL_AUDIT.md và WORD_RECONCILIATION.md; các PASS API/IIS ở bảng trên là bằng chứng P0–P5 đã chạy trước, không phải kết quả authenticated P6 mới. Trọng số rubric hiện hành giữ từ checklist đã có; hai Word đầu vào không chứa bản rubric/nhận xét chính thức mới để xác minh lại.

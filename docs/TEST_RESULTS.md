@@ -36,3 +36,23 @@ Lệnh nghiệm thu: `powershell -NoProfile -ExecutionPolicy Bypass -File tests/
 Trước commit, thay các số mẫu vô tình khớp một phần bí mật cấu hình sau khi scan chặn (không in giá trị). Giữ nguyên miền và assertion; chạy lại WorkflowUnit 21 PASS, Test-Backup PASS (qlbanhang_restore_6425c26243f3cf9a), LiveIntegration PASS (qlbanhang_test_0bfb658e50ae4293b86528e5d082858a), exit 0. Secret scan sau thay đổi: 0 phát hiện; không đổi credential hoặc vô hiệu kiểm thử.
 
 Audit phát hành bổ sung: build/Razor + 49 smoke + 21 unit chạy lại PASS; Test-GitSafety 13 và workflow mock 10 PASS. Quét 10 commit/244 blob ở mốc 703b70c phát hiện credential lịch sử trùng cấu hình hiện tại, nên không chạy thêm tích hợp bằng cấu hình đó. Không diễn giải staged an toàn là lịch sử sạch. Origin fetch/push đúng mục tiêu, không credential nhúng; GitHub connector/API 404, visibility chưa xác minh. Chi tiết và bước chủ repo ở RELEASE_READINESS.md.
+
+## Đợt P6: phân biệt kết quả mới và lịch sử
+
+Ngày 28/10/2026, nhánh codex/p6-report-audit từ 1d88092. Không thay code ứng dụng/seed, không ghi CouchDB, không rewrite commit P0–P5. Xem [ma trận audit](p6/TECHNICAL_AUDIT.md).
+
+| Ca mới P6 | Kết quả | Giới hạn |
+|---|---|---|
+| Build Solution/Razor | PASS exit 0 | VS2022 Community Debug/MvcBuildViews=true |
+| Smoke / unit workflow | PASS 49 / 21 | Không thay lượt integration có auth |
+| Git safety unit / review Word regression | PASS 13 / PASS | Kiểm thử scanner/detection, không làm lịch sử/seed thành an toàn |
+| Nguồn sạch khôi phục NuGet + build/Razor | PASS exit 0 | git archive tracked source 1d88092; không phải remote clone/runtime máy mới |
+| Anonymous CouchDB read-only | PASS phạm vi | 3.5.2, root/health200, session anonymous, DB/security/membership và mẫu401 |
+| Nguồn seed so quy tắc projection | FAIL exit 1 | 5 cặp confirmed/assigned lệch; 10 assigned không shipperId; chưa so DB thật |
+| Toàn lịch sử local secret scan | FAIL exit 1 | Credential cấu hình trùng literal lịch sử; không in giá trị/không xác thực lại |
+| Integration có auth, Mango/explain/backup mới | BLOCKED | Cần chủ repo thay credential trước; PASS P5 ở trên giữ nguyên là lịch sử |
+| _security thực tế, server admin/single-node | BLOCKED | Không tự thay quyền; anonymous401 không đủ xác nhận |
+| Replication mới, GUI/ảnh, HTTPS | NOT RUN | Đã có kịch bản, chưa có kết quả thực thi |
+| Phân trang Word sau sửa | NOT RUN | Chỉ giao nội dung Markdown, chưa xuất/render Word/PDF |
+
+Sai lệch Word/JSON và kết quả seed mới được công bố riêng thay vì thay assertion cho PASS. Hai Word gốc có hash không đổi; ảnh cũ chỉ kiểm kê vị trí/chú thích, chưa xác minh nội dung pixel/nguồn/môi trường. Artifact trích xuất đã che dữ liệu chỉ lưu cục bộ và bị ignore.

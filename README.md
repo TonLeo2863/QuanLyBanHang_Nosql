@@ -41,5 +41,8 @@ Seed giả gồm 20 khách, 30 sản phẩm, 30 đơn nhiều item, 20 giao hàn
 - [Hướng dẫn sử dụng](docs/USER_GUIDE.md), [triển khai từ clone sạch](docs/DEPLOYMENT.md).
 - [Backup/import/restore và giới hạn](docs/BACKUP_RESTORE.md), [kết quả kiểm thử](docs/TEST_RESULTS.md).
 - [Nhật ký](CODEX_PROGRESS.md), [rubric](RUBRIC_CHECKLIST.md).
+- [Audit P6 và giới hạn bằng chứng](docs/p6/TECHNICAL_AUDIT.md), [đối chiếu hai Word](docs/p6/WORD_RECONCILIATION.md).
+- [Nội dung chèn báo cáo 5 chương](docs/p6/REPORT_INSERTS.md), [so sánh 4 CSDL](docs/p6/DB_COMPARISON.md), [nguồn chính thức](docs/p6/SOURCES.md).
+- [Năm chức năng Fauxton](docs/p6/FAUXTON_MODULES.md), [kịch bản bảo vệ](docs/DEMO_DEFENSE.md), [bảo mật và phản biện](docs/p6/SECURITY_AND_TECHNICAL_DEFENSE.md).
 
 Snapshot nghiệp vụ không gồm người dùng/quyền/cấu hình/lịch sử revision/attachments của hệ thống. Order–Delivery dùng durable outbox, không phải transaction xuyên document; admin xử lý đồng bộ chờ ở `/Sync`. Single-node cần sinh viên xác minh bằng quyền quản trị; GUI/ảnh và publish HTTPS không được tính PASS chỉ từ API. Không push/merge hoặc tự viết lại lịch sử trong phiên này.

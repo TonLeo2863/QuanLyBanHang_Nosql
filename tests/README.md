@@ -133,3 +133,13 @@ Script dùng tên DB trong biến môi trường, tạo index `type-id` và bố
 - **NOT RUN tích hợp thật:** tạo DB/index/seed, Mango, CRUD Customer/Product/Order/Delivery, đối chiếu Shipping, quyền và conflict thật. Không có thông tin xác thực mới, không suy đoán hoặc thử lại mật khẩu cũ.
 
 Có thể kiểm tra lại chẩn đoán mà không ghi DB bằng lệnh ở trên. Kiểm thử chẩn đoán với HTTP stub: `python tests/Test-ConnectionDiagnostic.py`; đây là giả lập, không thay thế kiểm tra có xác thực với CouchDB thật. Chưa bắt đầu P2.
+
+## Audit P6 (chỉ đọc, không chạy authenticated suite với credential đã lộ)
+
+- `python scripts/Inspect-ReviewInputs.py`: cần đúng hai DOCX cục bộ trong docs/review_input; không sửa gốc, chỉ trích xuất đã che vào artifacts/p6-input. Có thể nạp biến môi trường bằng With-CouchEnvironment để che khớp giá trị; không dùng chúng để xác thực.
+- `python scripts/Compare-ReviewJson.py`: so JSON trong bộ đầu vào, chỉ báo ID/tên field/vị trí.
+- `python scripts/P6-SeedConsistency.py`: audit nguồn seed so mapping P4; hiện **FAIL exit1**, 5 cặp lệch và 10 assigned không shipperId. Không sửa DB hoặc bỏ assertion để PASS.
+- `python tests/Test-P6Review.py`: sau hai bước trích xuất/so sánh, kiểm tra hash gốc/ignore, bốn ID mâu thuẫn, redaction và giữ kết quả FAIL của seed audit. PASS của regression nghĩa là phát hiện đúng, không nghĩa seed đã hợp lệ. Test phụ thuộc đầu vào Word riêng, không chạy mặc định ở clone không có docs/review_input.
+- `python scripts/P6-ReadOnlyProbe.py`: chỉ anonymous GET, không Authorization/Cookie hay ghi DB. Không thay thế kiểm tra _security hoặc tích hợp với credential mới an toàn.
+
+Ma trận thật: docs/p6/TECHNICAL_AUDIT.md. Không tự khởi chạy Run-AllTests có xác thực trước khi chủ máy thay/thu hồi credential đã lộ và xác minh quyền.

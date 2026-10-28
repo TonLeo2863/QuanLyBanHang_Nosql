@@ -367,3 +367,5 @@ FodyWeavers.xsd
 !.env.example
 *.local.ps1
 *.local.config
+# Original Word drafts and extracted review material stay local.
+/docs/review_input/

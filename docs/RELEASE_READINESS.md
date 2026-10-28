@@ -28,7 +28,7 @@ Một fixture âm có trường nhạy cảm giả trong tests/Test-Backup.py đ
 2. Xác nhận đúng repository bằng tài khoản chính chủ, chuyển/xác minh Private và cấp quyền kết nối/push cần thiết. HTTP 404 hiện chưa phân biệt được thiếu quyền, repo đổi tên hoặc repo không khả dụng.
 3. Thống nhất phương án xử lý dấu vết đã chia sẻ và lịch sử với thành viên nhóm. Giữ nguyên P0–P5 theo yêu cầu hiện tại; bất kỳ rewrite/force push/làm sạch lịch sử đều cần phê duyệt riêng, không thực hiện tự động. Xóa bí mật ở HEAD không xóa nó khỏi lịch sử.
 4. Chạy lại audit với cấu hình đã thay, kiểm tra staged/diff và chẩn đoán/integration bằng credential mới an toàn. Quét phải ghi rõ lịch sử vẫn có giá trị đã thu hồi nếu chưa có phương án xử lý; không báo lịch sử sạch chỉ vì mật khẩu hiện tại đã khác.
-5. Khi được phép push: báo bằng tiếng Việt nội dung/file/test/rủi ro, chỉ push nhánh codex/nosql-completion và tạo PR đích master; không merge tự động. Workflow chưa được coi hoạt động thật cho tới khi có run được quan sát.
+5. Khi được phép push: báo bằng tiếng Việt nội dung/file/test/rủi ro, chỉ push nhánh tính năng được chủ repo cho phép (P6 hiện ở codex/p6-report-audit), đích PR master; không merge tự động. Workflow chưa được coi hoạt động thật cho tới khi có run được quan sát.
 
 ## File được giữ và chỉnh lý
 
