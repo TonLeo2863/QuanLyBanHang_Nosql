@@ -89,3 +89,8 @@ Kiểm tra quản trị bổ sung: `/_membership` trả HTTP 403 bằng tài kho
 - PASS mục 6/9b ở phạm vi snapshot logic: export 104 doc + 9 JSON index, restore DB riêng, hash/count/định nghĩa index khớp; nhập lại skip 104 không đổi revision; xung đột ID/index và file không hợp lệ bị từ chối trước ghi. Không export app_user/quyền/config; không gọi đây là backup toàn hệ thống.
 - PASS bộ Run-AllTests.ps1 exit 0: build/Razor, 49 smoke, 21 unit, stub initializer/diagnostic, P2/Mango thật, backup/restore, IIS auth/CRUD/workflow/outbox/Dashboard/Shipping/filters/CSRF, ba lỗi backend thật. Giữ log lần đầu FAIL và cách sửa trong CODEX_PROGRESS.md.
 - Đủ README + DATABASE_DESIGN/FAUXTON_DEMO/TEST_RESULTS/USER_GUIDE/DEPLOYMENT/SCREENSHOT_CHECKLIST/BACKUP_RESTORE; NOT RUN ảnh GUI, demo máy thành viên khác, HTTPS publish và backup toàn máy chủ. BLOCKED xác minh single-node/quyền admin và xử lý credential/lịch sử/Private. Không tự đánh dấu hoàn thành toàn bộ rubric/P6.
+
+### Audit sau P5 – cập nhật an toàn phát hành
+- FAIL lịch sử: mật khẩu CouchDB đang cấu hình trùng toàn bộ literal trong blob dịch vụ trước P0; không in hoặc thử credential cũ. Việc bỏ hardcode ở mã hiện tại không hoàn tất thu hồi credential.
+- BLOCKED push: chủ repo cần thay/thu hồi credential và xác minh cấu hình mới; GitHub 404 chưa xác minh Private/quyền repo; phương án dấu vết lịch sử cần thống nhất riêng, không sửa commit P0–P5 trong phiên này.
+- PASS lại build/Razor, 49 smoke, 21 unit; audit unit 13 và workflow mock 10 assertion. Tích hợp mới với credential đã lộ NOT RUN; kết quả chức năng trước đó vẫn là bằng chứng lịch sử, không thay chứng nhận an toàn phát hành. Xem docs/RELEASE_READINESS.md.

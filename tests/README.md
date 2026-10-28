@@ -2,6 +2,18 @@
 
 ## Bộ nghiệm thu P2–P5 hiện tại
 
+**Chặn phát hành sau audit:** credential cấu hình hiện tại đã được xác định trùng literal lịch sử. Chưa chạy lại tích hợp/backup bằng credential đó; chủ repo cần thay/thu hồi và cập nhật cấu hình mới trước. Build/unit không dùng CouchDB thật vẫn chạy được. Xem docs/RELEASE_READINESS.md.
+
+Kiểm tra chỉ đọc và công cụ an toàn:
+
+```powershell
+python tests/Test-GitSafety.py
+node tests/Test-PrWorkflow.js
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/With-CouchEnvironment.ps1 -Script scripts/Audit-GitSafety.py
+```
+
+Audit không gọi CouchDB hoặc thử credential cũ; chỉ đối chiếu trong bộ nhớ và in metadata. Exit 1 = phát hiện trong file/lịch sử hoặc origin không an toàn, exit 2 = lỗi/thiếu điều kiện, exit 0 không thay thế xác minh Private/thu hồi credential. Workflow test dùng mock, không gửi bình luận GitHub; cần Node.js đã có trên PATH. Không lấy fixture kiểm thử làm lý do bỏ qua credential thật.
+
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File tests/Run-AllTests.ps1
 ```

@@ -23,7 +23,7 @@ PASS = đã chạy đạt; FAIL = đã chạy không đạt; BLOCKED = thiếu �
 | Lỗi backend/IIS public routes | PASS | DB thiếu, máy chủ loopback không kết nối, mật khẩu sai; 3 lượt lỗi Login có kiểm soát + 7 GET/4 POST anonymous/validation/CSRF mỗi lượt |
 | GUI Fauxton/ảnh/bố cục | NOT RUN | Có kịch bản/danh sách ảnh; không tạo ảnh giả |
 | Single-node qua API quản trị | BLOCKED | /_membership HTTP 403; sinh viên xác minh Setup bằng quyền quản trị |
-| Credential cũ/Private/lịch sử Git | BLOCKED xác minh | chủ repo thực hiện/xác nhận; không tự đổi hoặc viết lại lịch sử |
+| Credential cũ/Private/lịch sử Git | FAIL lịch sử, BLOCKED push | Audit sau P5 xác nhận mật khẩu cấu hình trùng literal lịch sử; GitHub 404 chưa xác minh Private/quyền. Không thử credential cũ hoặc rewrite lịch sử |
 | Publish HTTPS/multi-node/backup toàn máy chủ | NOT RUN | Không suy từ IIS Express/backup logic |
 | Clone sạch và demo trên máy thành viên khác | NOT RUN | Có hướng dẫn NuGet/config/provision/chạy test, cần sinh viên diễn tập thực tế |
 
@@ -34,3 +34,5 @@ Snapshot generated chỉ ở artifacts; DB thử/restore giữ để đối chi�
 Lệnh nghiệm thu: `powershell -NoProfile -ExecutionPolicy Bypass -File tests/Run-AllTests.ps1`. Đã kiểm tra đủ tài liệu bàn giao tồn tại; syntax 16 Python file PASS, PowerShell parser của 4 runner 0 lỗi. Kết quả chi tiết theo giai đoạn/commit ở CODEX_PROGRESS.md.
 
 Trước commit, thay các số mẫu vô tình khớp một phần bí mật cấu hình sau khi scan chặn (không in giá trị). Giữ nguyên miền và assertion; chạy lại WorkflowUnit 21 PASS, Test-Backup PASS (qlbanhang_restore_6425c26243f3cf9a), LiveIntegration PASS (qlbanhang_test_0bfb658e50ae4293b86528e5d082858a), exit 0. Secret scan sau thay đổi: 0 phát hiện; không đổi credential hoặc vô hiệu kiểm thử.
+
+Audit phát hành bổ sung: build/Razor + 49 smoke + 21 unit chạy lại PASS; Test-GitSafety 13 và workflow mock 10 PASS. Quét 10 commit/244 blob ở mốc 703b70c phát hiện credential lịch sử trùng cấu hình hiện tại, nên không chạy thêm tích hợp bằng cấu hình đó. Không diễn giải staged an toàn là lịch sử sạch. Origin fetch/push đúng mục tiêu, không credential nhúng; GitHub connector/API 404, visibility chưa xác minh. Chi tiết và bước chủ repo ở RELEASE_READINESS.md.

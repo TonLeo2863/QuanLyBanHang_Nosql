@@ -1,0 +1,47 @@
+﻿name: Ghi chú tiếng Việt khi cập nhật PR Codex
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+permissions: {}
+
+jobs:
+  nhat-ky-cap-nhat:
+    if: startsWith(github.event.pull_request.head.ref, 'codex/') && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Bình luận tiếng Việt vào Pull Request
+        # Official actions/github-script v7 tag resolved during review.
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const pull = context.payload.pull_request;
+            const sha = pull.head.sha;
+            const { data: commit } = await github.rest.repos.getCommit({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: sha,
+            });
+            const title = commit.commit.message.split(String.fromCharCode(10))[0].replace(/\r$/, '').slice(0, 240).replace(/@/g, '@' + String.fromCharCode(8203));
+            const comment = [
+              '### Nhật ký tự động: Codex cập nhật mã nguồn',
+              '',
+              `**Nhánh:** \`${pull.head.ref}\``,
+              `**Commit mới nhất:** \`${sha.slice(0, 7)}\``,
+              `**Nội dung commit:** ${title}`,
+              `**Liên kết:** ${commit.html_url}`,
+              '',
+              '> Đây là bình luận tự động khi mở/cập nhật PR. Codex vẫn phải ghi bổ sung bằng tiếng Việt: file đã sửa, kết quả kiểm thử, rubric liên quan, tồn tại và bước tiếp theo.',
+            ].join(String.fromCharCode(10));
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pull.number,
+              body: comment,
+            });

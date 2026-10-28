@@ -2,6 +2,8 @@
 
 Đồ án quản lý đơn hàng và giao hàng – nhóm 7. Giữ ASP.NET MVC 5, .NET Framework 4.7.2, C#, Newtonsoft.Json, Visual Studio 2022 và CouchDB 3.x. Nhánh phát triển `codex/nosql-completion`, nhánh gốc `master`.
 
+**Chưa đủ điều kiện push:** audit sau P5 xác nhận mật khẩu CouchDB hiện cấu hình trùng literal lịch sử. Chủ repo phải thay/thu hồi credential và xác minh Private/quyền GitHub (hiện 404), không chỉ chuyển mật khẩu cũ sang biến môi trường. Xem [điều kiện phát hành](docs/RELEASE_READINESS.md); commit P0–P5 được giữ nguyên, không tự rewrite/push/merge.
+
 1. Chủ repo cần đổi mật khẩu CouchDB đã lộ, chuyển repo sang Private và phối hợp xử lý lịch sử Git trước khi chia sẻ tiếp. Không dùng lại mật khẩu cũ.
 2. Cài workload ASP.NET và targeting pack .NET Framework 4.7.2. Restore NuGet rồi mở solution trong VS 2022.
 3. Trong Fauxton ở http://127.0.0.1:5984/_utils/, hoàn tất Setup single node bằng tài khoản quản trị mới. Không đưa thông tin đăng nhập vào URL.
