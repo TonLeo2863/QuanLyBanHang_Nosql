@@ -1,6 +1,6 @@
 ﻿# Nhật ký tiến độ Codex – QuanLyBanHang_Nosql
 
-Ngày khởi tạo hồ sơ: 28/10/2026. **Trạng thái: đã triển khai mã P0/P1; build/Razor và kiểm thử giả lập/IIS đã chạy. Chưa nghiệm thu CRUD với CouchDB thật.**
+Ngày khởi tạo hồ sơ: 28/10/2026. **Trạng thái mới nhất: kiểm thử kỹ thuật P0/P1 với CouchDB thật và IIS Express PASS; chưa xác nhận các việc bảo mật thuộc chủ repo. Chưa triển khai P2.**
 
 ## Baseline – mã nguồn hiện tại (`master`)
 - [x] Có project ASP.NET MVC5 /.NET Framework 4.7.2 và các controller CRUD cơ bản.
@@ -12,8 +12,8 @@ Ngày khởi tạo hồ sơ: 28/10/2026. **Trạng thái: đã triển khai mã 
 ## Tiến độ theo giai đoạn
 | Giai đoạn | Trạng thái | PR/Commit | Bằng chứng kiểm thử | Ghi chú |
 |---|---|---|---|---|
-| P0 – Môi trường/bảo mật | Đã sửa mã; chờ xác minh môi trường thật | fa57030 | Cú pháp/script giả lập đạt; CouchDB HTTP 200, DB 404 | Chưa có cấu hình đăng nhập mới |
-| P1 – Lỗi nền tảng/CRUD | Đã sửa mã; chờ CRUD thật | Commit chứa bản ghi P1 này | Build/Razor đạt; 44 assertion; IIS 7 GET + 4 POST invalid + CSRF | Chưa nghiệm thu toàn bộ P1 |
+| P0 – Môi trường/bảo mật | Kết nối/xác thực/khởi tạo thật PASS | Xem bản ghi tích hợp cuối tệp | Session đúng danh tính; DB/index HTTP 200; seed chạy lại giữ nguyên revision | Đổi mật khẩu cũ/Private/lịch sử: chưa xác nhận |
+| P1 – Lỗi nền tảng/CRUD | Kiểm thử kỹ thuật PASS | Xem bản ghi tích hợp cuối tệp | CRUD 4 loại qua IIS; revision, validation, Shipping/Dashboard, lỗi DB/credential PASS | Chưa có ảnh/kiểm tra bố cục; các chức năng P4 chưa thuộc nghiệm thu này |
 | P2 – DB/seed/schema | Chưa làm | — | — | — |
 | P3 – Mango/Fauxton query | Chưa làm | — | — | — |
 | P4 – Nghiệp vụ/roles | Chưa làm | — | — | — |
@@ -84,3 +84,38 @@ Ngày khởi tạo hồ sơ: 28/10/2026. **Trạng thái: đã triển khai mã 
 - **An toàn:** vẫn cần chủ repo đổi mật khẩu đã lộ, Private repo và phối hợp xử lý lịch sử trước khi chia sẻ. Không bắt đầu P2; kết luận hiện tại là thiếu điều kiện kiểm thử tích hợp, không phải PASS CRUD thật.
 - **Git/PR:** tạo commit tiếng Việt trên nhánh hiện tại sau diff/secret scan. Không push/merge hoặc gửi bình luận PR theo yêu cầu phiên này.
 - **Kiểm tra trước commit:** git diff --check PASS; quét mẫu bí mật trên cả 5 file thay đổi không có phát hiện; PowerShell parser báo 0 lỗi cho script chẩn đoán. Không có bin/obj/.vs hoặc dữ liệu thật trong danh sách commit; không kiểm toán hay viết lại lịch sử Git.
+
+### 2026-10-28 – Tích hợp P0/P1 với CouchDB thật và IIS Express
+- **Nhánh/đầu phiên:** `codex/nosql-completion`, HEAD `31c4f65`; không có thay đổi tracked chưa commit. Giữ nguyên `.github/`, AGENTS.md, ROADMAP_NOSQL.md và các tài liệu chưa tracked có sẵn; không đưa vào commit này.
+- **Nguyên nhân cấu hình chưa được nhận:** sandbox dùng tài khoản Windows riêng, không thấy User variables của chủ máy. Kiểm tra ngoài sandbox xác nhận đủ bốn biến User, nhưng Process cũ chưa nhận biến. Đã nạp User → Process riêng cho lệnh kiểm thử/IIS, không sửa biến Windows và không hiển thị giá trị xác thực. Đây là nguyên nhân môi trường, không cần sửa service ứng dụng.
+- **Đã làm:** dùng script hiện có tạo `qlbanhang`, index `type-id` và bốn tài liệu `demo-*`; chạy hai lần thành công. Bộ tích hợp tiếp tục chạy lại initializer, so sánh toàn bộ nội dung và `_rev` trước/sau, giữ nguyên bốn tài liệu đã có. Không xóa DB hoặc ghi đè dữ liệu hiện có.
+- **Files thay đổi:** `tests/Test-LiveIntegration.py`, `tests/Run-LiveIntegration.ps1`, `tests/Test-WebSmoke.py` (cho phép chọn URL qua biến test), `tests/README.md`, `CODEX_PROGRESS.md`, `RUBRIC_CHECKLIST.md`. Không đổi stack hoặc code nghiệp vụ; không phát hiện lỗi ứng dụng mới qua các ca đã chạy.
+
+| Ca kiểm thử thực tế | Kết quả | Bằng chứng/phạm vi |
+|---|---|---|
+| Cấu hình User; kết nối/xác thực | PASS | Đủ 4 biến User; health/DB/index HTTP 200; `_session.userCtx.name` khớp tài khoản cấu hình, không in tên/mật khẩu |
+| Khởi tạo DB/index/seed | PASS | Initialize-CouchDb.ps1 chạy hai lần; bộ tích hợp chạy lại và đối chiếu 4 nội dung/revision không đổi |
+| Build ứng dụng + Razor | PASS | MSBuild VS 2022 Community, Debug, MvcBuildViews=true; exit 0 |
+| Smoke giả lập | PASS | Run-SmokeTests.ps1: 44 assertion; Test-Initializer.py và Test-ConnectionDiagnostic.py exit 0 |
+| CRUD Customer/Product/Order/Delivery | PASS | POST form qua IIS Express localhost:52516 có cookie/token; đọc trực tiếp CouchDB đối chiếu từng create/edit/delete; tổng đơn 24000 → 36000 do server tính |
+| Validation/tham chiếu/mã trùng | PASS | Email sai, giá âm, khách/đơn tham chiếu thiếu và mã trùng bị từ chối; không sinh tài liệu invalid |
+| Revision/bảo toàn dữ liệu | PASS | Sửa/xóa với revision cũ bị từ chối ở cả 4 loại; revision hiện tại không đổi khi bị từ chối; cập nhật giữ trường JSON phụ |
+| Shipping/Dashboard thật | PASS | So sánh 5 số đếm Dashboard với Mango; số lượng và ID Shipping khớp; Delivery shipping xuất hiện, đổi delivered bị loại khỏi Shipping; đối chiếu trước/trong/sau CRUD |
+| Mango cơ bản | PASS | Selector type + ID sản phẩm trả đúng tài liệu/giá |
+| Mango nâng cao | PASS | `$and`, `$in`, `$gte`, `$elemMatch` tìm đúng đơn theo khách/tổng/trạng thái/số lượng |
+| Mango phân trang/sort/index | PASS | type + _id tăng dần, use_index idx-type-id, limit=1 và bookmark; kết quả khớp truy vấn đầy đủ, không trùng/thiếu |
+| IIS GET với DB thật | PASS | Home, Customer, Product, Order, Delivery, Shipping, Order/Create HTTP 200, không cảnh báo lỗi DB |
+| DB không tồn tại/mật khẩu sai | PASS | Hai tiến trình IIS cấu hình lỗi riêng; mỗi lượt 7 GET, 4 POST invalid, CSRF đều đạt; không tạo DB thiếu, không sửa biến Windows |
+| Anti-forgery | PASS | POST thiếu token bị chặn HTTP 500 theo MVC5 mặc định, gồm cả môi trường DB thật |
+| Xác minh node qua API quản trị | FAIL quyền truy cập | GET `/_membership` có xác thực trả HTTP 403; tài khoản cấu hình không truy cập được API này. Chưa xác minh single-node; không tự nâng quyền hoặc sửa cấu hình máy chủ |
+| 403 với tài khoản bị hạn chế; timeout/mất dịch vụ thật | NOT RUN | 403/timeout/mất kết nối đã có test giả lập; không sửa quyền hoặc dừng CouchDB đang chạy |
+| Fauxton/kiểm tra bố cục/ảnh minh chứng | NOT RUN | Phiên này kiểm tra HTTP/HTML/form IIS; chưa thực hiện GUI hoặc chụp ảnh |
+| Đổi mật khẩu cũ/Private/làm sạch lịch sử | NOT RUN xác minh | Thuộc thao tác chủ repo; không suy ra đã hoàn tất từ việc thiết lập biến |
+
+- **Lệnh tích hợp:** `powershell -NoProfile -ExecutionPolicy Bypass -File tests/Run-LiveIntegration.ps1`, exit 0. Đã chạy bộ CRUD thật hai lượt sau khi bổ sung validation và ca cấu hình lỗi; kết quả cuối PASS. IIS chỉ chạy trong kiểm thử và đã dừng tiến trình do test tạo.
+- **An toàn dữ liệu:** dùng ID `test-p01-<UUID>-*`, đã xóa cả bốn tài liệu thử qua app theo thứ tự Delivery → Order → Product → Customer và xác nhận GET 404; CouchDB giữ tombstone theo cơ chế thông thường. Không xóa dữ liệu khác/DB. Seed vẫn bốn tài liệu, chưa phải bộ P2.
+- **Liên quan rubric:** bằng chứng kỹ thuật từng phần cho 5a–5d, 8, 9b–9d; chưa đánh dấu hoàn thành toàn bộ rubric (còn GUI, bộ dữ liệu/truy vấn đầy đủ, quyền, backup và các phase sau).
+- **Kết luận:** các ca kỹ thuật P0/P1 được yêu cầu trong phiên PASS; lỗi môi trường nhận biến đã xử lý. Không bắt đầu P2 trong phiên này. Chưa nghiệm thu phần bảo mật ngoài repo khi chưa có xác nhận từ chủ repo.
+- **Bước tiếp theo:** chủ repo xác nhận thay mật khẩu đã lộ/Private/phương án lịch sử; bổ sung demo Fauxton và các ca NOT RUN thích hợp. Sau đó triển khai nhóm công việc P2 theo roadmap.
+- **Git/PR:** tạo commit tiếng Việt trên nhánh hiện tại; không push, không merge, không gửi bình luận PR.
+- **Kiểm tra trước commit:** diff --check PASS; PowerShell parser 0 lỗi; cú pháp Python PASS. Secret scan 6 file (mẫu token/private key/URL chứa credential và đối chiếu kín mật khẩu đang cấu hình) không có phát hiện. Không đưa bin/obj/.vs, dữ liệu thật hoặc tài liệu chưa tracked có sẵn vào commit. Không quét/làm sạch lịch sử Git.

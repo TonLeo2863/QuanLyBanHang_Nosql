@@ -1,5 +1,19 @@
 ﻿# Kiểm thử P0/P1 trên Windows
 
+## Tích hợp thật cập nhật 28/10/2026
+
+Đã chạy với CouchDB thật và IIS Express. Các ghi nhận thiếu cấu hình bên dưới là lịch sử trước khi thiết lập biến User.
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File tests/Run-LiveIntegration.ps1
+```
+
+Chạy bằng tài khoản Windows sở hữu bốn biến môi trường. Script lấy biến Process, nếu thiếu mới lấy User, chỉ nạp vào tiến trình; không sửa cấu hình lưu trên Windows. Cần build trước, Python, IIS Express và cổng 52516 còn trống. Không chạy đồng thời nhiều lượt trên cùng cổng. Script tự dừng riêng IIS do nó khởi tạo.
+
+Bộ test xác thực danh tính qua `_session`; chạy lại initializer và so sánh nội dung/revision bốn seed; tạo/đọc/sửa/xóa Customer, Product, Order, Delivery qua form MVC có token; đối chiếu CouchDB sau thao tác. Kiểm tra mã trùng, email/giá sai, tham chiếu thiếu, tổng tiền do server tính, revision sửa/xóa cũ và bảo toàn trường phụ. Đối chiếu số liệu Dashboard và ID Shipping; truy vấn Mango cơ bản, nâng cao và sort/bookmark từng bản ghi. Sau đó chạy web smoke trong hai tiến trình IIS riêng với DB không tồn tại và mật khẩu ngẫu nhiên sai.
+
+Chỉ tạo tài liệu giả có tiền tố `test-p01-<UUID>-`; xóa qua app theo thứ tự Delivery → Order → Product → Customer, hoặc dọn riêng các ID đã tạo nếu thất bại. Không xóa DB; CouchDB giữ tombstone của tài liệu thử theo cơ chế revision. Không thay đổi tài liệu có sẵn; initializer chỉ bảo đảm DB/index/seed tồn tại. Nếu dừng cưỡng bức, kiểm tra thủ công các ID của lượt thử còn sót. Bộ seed vẫn chỉ bốn tài liệu, chưa đủ P2. Kiểm tra giao diện dựa trên HTTP/HTML/form, chưa có ảnh hoặc đánh giá bố cục trực quan.
+
 ## Đã tự động hóa
 
 Sau Restore NuGet, chạy trong Developer PowerShell của Visual Studio 2022:

@@ -2,11 +2,12 @@
 import html
 import http.cookiejar
 import re
+import os
 import urllib.error
 import urllib.parse
 import urllib.request
 
-base = 'http://localhost:52515'
+base = os.environ.get('TEST_WEB_URL', 'http://localhost:52515')
 client = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(http.cookiejar.CookieJar()))
 for path in ['/Home','/Customer','/Product','/Order','/Delivery','/Shipping','/Order/Create']:
     with client.open(base + path, timeout=60) as response:

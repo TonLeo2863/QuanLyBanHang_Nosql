@@ -51,3 +51,21 @@ Quy ước: **PASS** = ca đã chạy và đạt; **FAIL** = ca/điều kiện �
 | 9d – Hỗ trợ | Bảy GET trên IIS HTTP 200 PASS trong tình huống thiếu cấu hình | Đối chiếu thống kê/Shipping với CouchDB thật NOT RUN; Shipping chỉ đọc/lọc Delivery |
 
 Chi tiết lệnh, môi trường và kết quả: CODEX_PROGRESS.md, bản ghi “Kiểm tra điều kiện tích hợp P0/P1 và hướng dẫn thiết lập Windows”. Hướng dẫn thiết lập riêng trên Windows và checklist thao tác thật: tests/README.md. Chưa bắt đầu P2; chưa xác nhận đổi mật khẩu, Private repo hoặc xử lý lịch sử từ phía chủ repo.
+
+## Bằng chứng mới nhất 28/10/2026 – tích hợp CouchDB thật
+
+Bảng này cập nhật kết quả mới nhất, thay cho tình trạng thiếu cấu hình ở bản ghi trước; không tự chấm điểm hoặc xác nhận hoàn thành các mục còn thiếu.
+
+| Mục | Kết quả thật | Phần còn thiếu |
+|---|---|---|
+| 5a | PASS tạo `qlbanhang` bằng script, đọc DB/index có xác thực HTTP 200; chạy lại an toàn | Ảnh Fauxton NOT RUN |
+| 5b | PASS bốn seed liên kết; chạy lại giữ nguyên nội dung và revision | Bộ dữ liệu 10/20/20/15 của P2 NOT RUN |
+| 5c/5d | PASS Mango cơ bản, nâng cao `$and/$in/$gte/$elemMatch`, sort/index và bookmark limit=1 không trùng/thiếu | Bộ 5+5 truy vấn, ảnh Fauxton và hiệu năng NOT RUN |
+| 8 | PASS xác thực `_session` đúng danh tính; ứng dụng IIS đọc/ghi DB thật | Quyền hạn chế 403 thật NOT RUN; việc đổi mật khẩu/Private chưa xác nhận |
+| 9b | PASS CRUD 4 loại qua form MVC/IIS và đối chiếu CouchDB; revision cũ, mã trùng, trường phụ, validation/CSRF | Backup/restore và quyền ứng dụng NOT RUN |
+| 9c | PASS tạo khách/sản phẩm → đơn tổng tính server → Delivery; kiểm tra tham chiếu thiếu | Quy tắc chuyển trạng thái đầy đủ, ràng buộc xóa và role thuộc P4 chưa triển khai |
+| 9d | PASS Dashboard 5 số đếm và Shipping số lượng/ID khớp DB; đổi delivered loại khỏi Shipping; 7 GET IIS HTTP 200 | Kiểm tra bố cục/ảnh GUI và lịch sử đầy đủ NOT RUN |
+
+Build gồm Razor PASS; 44 assertion giả lập PASS; initializer/diagnostic giả lập PASS. IIS với DB không tồn tại và mật khẩu thử sai PASS cảnh báo có kiểm soát, validation/CSRF. Không có FAIL còn tồn tại trong bộ tự động đã chạy cuối phiên; các ca NOT RUN không được tính PASS. Xem CODEX_PROGRESS.md, bản ghi “Tích hợp P0/P1 với CouchDB thật và IIS Express”, và hướng dẫn chạy lại tests/README.md. Chưa chuyển sang P2, chưa tuyên bố đạt đủ rubric.
+
+Kiểm tra quản trị bổ sung: `/_membership` trả HTTP 403 bằng tài khoản cấu hình (**FAIL quyền truy cập API quản trị**); single-node chưa được xác minh. Không tự nâng quyền; điều này không phủ định CRUD/DB/index đã PASS. Chủ repo cần kiểm tra Setup single-node bằng tài khoản quản trị trong Fauxton trước nghiệm thu P0 đầy đủ.
