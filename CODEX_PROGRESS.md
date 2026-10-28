@@ -1,6 +1,6 @@
 ﻿# Nhật ký tiến độ Codex – QuanLyBanHang_Nosql
 
-Ngày khởi tạo hồ sơ: 28/10/2026. **Trạng thái mới nhất: P2/P3 kỹ thuật và P4 tích hợp thật PASS; P5 đang triển khai. GUI/ảnh, single-node và bảo mật lịch sử vẫn chưa xác nhận.**
+Ngày khởi tạo hồ sơ: 28/10/2026. **Trạng thái mới nhất: P2–P5 kỹ thuật đã kiểm thử PASS, Run-AllTests.ps1 exit 0. GUI/ảnh, single-node và bảo mật lịch sử vẫn chưa xác nhận; không tuyên bố đạt đủ rubric.**
 
 ## Baseline – mã nguồn hiện tại (`master`)
 - [x] Có project ASP.NET MVC5 /.NET Framework 4.7.2 và các controller CRUD cơ bản.
@@ -14,10 +14,10 @@ Ngày khởi tạo hồ sơ: 28/10/2026. **Trạng thái mới nhất: P2/P3 k�
 |---|---|---|---|---|
 | P0 – Môi trường/bảo mật | Kết nối/xác thực/khởi tạo thật PASS | Xem bản ghi tích hợp cuối tệp | Session đúng danh tính; DB/index HTTP 200; seed chạy lại giữ nguyên revision | Đổi mật khẩu cũ/Private/lịch sử: chưa xác nhận |
 | P1 – Lỗi nền tảng/CRUD | Kiểm thử kỹ thuật PASS | Xem bản ghi tích hợp cuối tệp | CRUD 4 loại qua IIS; revision, validation, Shipping/Dashboard, lỗi DB/credential PASS | Chưa có ảnh/kiểm tra bố cục; các chức năng P4 chưa thuộc nghiệm thu này |
-| P2 – DB/seed/schema | PASS kỹ thuật | Commit P2 sau bản ghi | 100 seed thật, idempotency, tham chiếu/tổng, Mango/_explain | Ảnh Fauxton thuộc P3 |
-| P3 – Mango/Fauxton query | PASS API/tài liệu; ảnh NOT RUN | Commit P3 | 5+5 query/_explain, bookmark PASS | Chưa thao tác/chụp GUI |
-| P4 – Nghiệp vụ/roles | PASS kỹ thuật/tích hợp | Commit P4 | 49 smoke + 19 unit; full IIS workflow/roles/outbox PASS | Tạo admin thật bằng mật khẩu riêng; GUI NOT RUN |
-| P5 – Backup/tests | Chưa làm | — | — | — |
+| P2 – DB/seed/schema | PASS kỹ thuật | 00b202f | 100 seed thật, idempotency, tham chiếu/tổng, Mango/_explain | Ảnh Fauxton thuộc P3 |
+| P3 – Mango/Fauxton query | PASS API/tài liệu; ảnh NOT RUN | 16d75eb | 5+5 query/_explain, bookmark PASS | Chưa thao tác/chụp GUI |
+| P4 – Nghiệp vụ/roles | PASS kỹ thuật/tích hợp | fd37f4a | 49 smoke + 19 unit P4; full IIS workflow/roles/outbox PASS | Tạo admin thật bằng mật khẩu riêng; GUI NOT RUN |
+| P5 – Backup/tests | PASS snapshot logic/bộ tự động | Commit chứa bản ghi P5 cuối | 104 doc/9 index; 49 smoke + 21 unit; Run-AllTests exit 0 | Full-system backup/HTTPS/GUI NOT RUN |
 | P6 – Báo cáo/demo | Chưa làm | — | — | — |
 
 ## Mẫu bản ghi sau MỖI LẦN CẬP NHẬT
@@ -143,3 +143,23 @@ Ngày khởi tạo hồ sơ: 28/10/2026. **Trạng thái mới nhất: P2/P3 k�
 - **Dữ liệu/an toàn:** chỉ ghi/test trên DB thử riêng, giữ DB để đối chiếu; không sửa credential/quyền CouchDB hoặc tài liệu qlbanhang. Mật khẩu test ngẫu nhiên chỉ ở bộ nhớ, app_user chỉ có hash và không hiển thị trong View. Chưa tạo admin cố định trong DB chính; sinh viên tự nhập bí mật riêng bằng tool. Không tự cấp quyền admin để gọi membership.
 - **Giới hạn:** không có transaction hai document, Shipping có thể tạm chậm khi projection lỗi; thao tác trực tiếp DB/multiple writers có thể vượt ràng buộc tham chiếu, đã ghi trong hướng dẫn. Không coi kiểm tra trước xóa là foreign key serializable. GUI và kiểm tra HTTPS deployment NOT RUN; MFA/reset mật khẩu tự phục vụ ngoài phạm vi demo. Rubric 9a–9d có thêm test; chưa tự chấm điểm.
 - **Git:** commit P4 tiếng Việt sau diff/secret scan; không push/merge. Bước tiếp P5, hoàn tất snapshot/import/restore và tài liệu bàn giao.
+
+### 2026-10-28 – P5 đang nghiệm thu: snapshot, phục hồi và ca biên
+- **Commit đã có:** P2 `00b202f`, P3 `16d75eb`, P4 `fd37f4a` (đều cục bộ, không push/merge).
+- **Công cụ mới:** scripts/Business-Backup.py + json_exact.py, snapshot logic 4 loại nghiệp vụ và JSON indexes, không app_user/quyền/config/revision/attachments. Preflight schema/checksum/tham chiếu/nội dung ID/index; import create-only vào DB thử riêng, không overwrite; export dùng file mới và kiểm tra update_seq. tests/Test-Backup.py kiểm tra thật, artifacts bị gitignore.
+- **PASS riêng:** export 104 doc/9 index từ qlbanhang chỉ đọc, restore qlbanhang_restore_97e29a74281bc2db, hash canonical khớp; nhập lại skip 104, revision không đổi; file trùng/ID xung đột/checksum/JSON trùng/NaN/user/bí mật/revision/tổng âm/tham chiếu thiếu bị từ chối. Lượt tổng hợp tiếp phục hồi qlbanhang_restore_6cd3b05d347da6ab PASS, kiểm tra user bị loại và pending sync bị từ chối PASS.
+- **Lỗi phát hiện/sửa:** DB thử nhỏ thiếu type-id làm sort 400, đã tạo index trước test. Decimal cực lớn không round-trip chính xác ở nguồn CouchDB: bổ sung Models/MoneyAttribute.cs + Product/WorkflowService và validator import cùng miền 0..999999999999.99, tối đa 2 số lẻ; từ chối trước ghi, không tự làm tròn. Codec giữ decimal của nguồn, không cam kết khôi phục độ chính xác đã mất.
+- **Bộ tổng hợp lần đầu:** build/Razor PASS; smoke 49 PASS; unit mới 21 PASS; stub scripts/P2/10 Mango queries/bookmark/backup PASS. FAIL khi IIS chưa sẵn sàng (URLError trước login). Đã thêm wait_ready giới hạn 60 giây, chỉ retry lỗi kết nối, HTTP lỗi ứng dụng vẫn FAIL. Đang kiểm thử lại phần IIS và sẽ cập nhật kết quả cuối trước commit P5.
+- **Tài liệu:** README, DATABASE_DESIGN, USER_GUIDE, DEPLOYMENT, BACKUP_RESTORE và TEST_RESULTS được cập nhật; tests/README nêu suite hiện tại và tách lịch sử cũ. Single-node/Git history BLOCKED xác minh, GUI/ảnh/publish/backup toàn máy chủ NOT RUN. Không sửa dữ liệu thật để làm test PASS.
+
+### 2026-10-28 – P5 nghiệm thu kỹ thuật cuối
+- **Kết quả:** `powershell -NoProfile -ExecutionPolicy Bypass -File tests/Run-AllTests.ps1` **PASS, exit 0** sau sửa readiness IIS. Giữ ghi nhận lần đầu FAIL ở trên, không bỏ assertion hoặc đổi credential/quyền máy chủ để làm xanh.
+- **Build/unit/stub PASS:** solution + Razor (Debug/MvcBuildViews=true); smoke 49 assertion; workflow/security 21 assertion gồm miền tiền và inject HTTP failure; Test-Initializer.py và Test-ConnectionDiagnostic.py PASS. Cú pháp 16 Python file PASS, 4 PowerShell runner/parser 0 lỗi.
+- **CouchDB thật PASS:** seed hiện có thêm 0 ở cả hai lần, toàn bộ 100 ID/revision/tham chiếu/tổng giữ nguyên; 10 query Mango counts và _explain đúng, bookmark đầy đủ/không trùng. Export primary 104 document/9 JSON index, restore `qlbanhang_restore_c8f5a7bbff463336`; verify đếm/hash/định nghĩa index khớp, import lại skip 104/revision không đổi. Xung đột ID/index, JSON lỗi/checksum/secret/user/rev, tham chiếu/tổng sai và outbox pending bị từ chối; không ghi đè DB chính. Decimal codec/giới hạn tiền và loại trừ app_user có test thật.
+- **IIS thật PASS:** DB `qlbanhang_test_35ecc98ba01b4bc088619331176aa96e`; auth/3 vai trò/khóa user; chặn GET và POST vượt quyền; CRUD/revision/trường phụ/xóa tham chiếu, tiền thập phân hợp lệ và từ chối ngoài miền, tổng server, luồng thất bại/giao lại/hoàn tất, outbox lock/recovery/idempotency/conflict; Dashboard 5 số đếm và Shipping ID khớp DB trước/sau; Mango UI/bookmark/tiếng Việt/CSRF/logout.
+- **Lỗi backend thật PASS:** 3 tiến trình IIS riêng: DB thiếu, URL loopback không kết nối, mật khẩu CouchDB ngẫu nhiên sai. Mỗi lượt Login báo lỗi có kiểm soát, không phản chiếu password/hash/header; 7 GET anonymous về Login, 4 POST bị chặn trước ghi, validation Login và CSRF thiếu token bị từ chối. Không dừng CouchDB, không sửa biến User/Machine. Test chỉ đổi Process và đã dừng riêng IIS của nó.
+- **Files chính:** Models/MoneyAttribute.cs, Product.cs, WorkflowService.cs, project; scripts/{Business-Backup.py,json_exact.py,With-CouchEnvironment.ps1}; tests/{Run-AllTests.ps1,Run-ConnectionFailures.ps1,Test-Backup.py,Test-LoginFailure.py,Test-WebSmoke.py,Test-Workflow.py,WorkflowTests.cs,Run-SystemTests.ps1,Test-Pagination.py}; README và docs/{DATABASE_DESIGN,USER_GUIDE,DEPLOYMENT,BACKUP_RESTORE,TEST_RESULTS}.md, tests/README.md, RUBRIC_CHECKLIST.md.
+- **Bàn giao:** đủ tệp hướng dẫn được yêu cầu; snapshot và log khởi động chỉ ở artifacts bị gitignore, không commit dữ liệu/hash tài khoản test. DB thử/restore giữ để đối chiếu; chỉ xóa các tài liệu CRUD giả vừa tạo trong DB thử. Không xóa DB/document có sẵn của người dùng, không ghi đè qlbanhang.
+- **Còn tồn tại:** ảnh/thao tác Fauxton GUI NOT RUN; single-node BLOCKED do membership 403; Private/đổi mật khẩu cũ/lịch sử Git BLOCKED xác minh; fresh-clone trên máy thành viên khác, publish HTTPS/multi-node và backup toàn máy chủ NOT RUN. Admin website DB chính do sinh viên tự provision bằng mật khẩu riêng, không phát hành mặc định. Giới hạn nhất quán cuối cùng và tham chiếu concurrent đã ghi trong USER_GUIDE; không cam kết ACID hai document hoặc đạt đủ rubric/P6.
+- **Git:** kiểm tra diff và secret/artifact scan trước commit P5 tiếng Việt; chỉ commit cục bộ trên codex/nosql-completion, không push/PR/merge hoặc viết lại lịch sử. Các tài liệu/.github chưa tracked có sẵn vẫn được giữ nguyên.
+- **Kiểm tra chốt commit:** diff --check PASS. Secret scan ban đầu chặn 3 file test vì số mẫu vô tình khớp một phần bí mật cấu hình; chỉ chẩn đoán tên file, không in giá trị/dòng khớp. Đã đổi số mẫu, giữ nguyên miền/các assertion, scan lại 0 phát hiện. Chạy lại đúng 3 bộ bị ảnh hưởng: WorkflowUnit 21 PASS, Test-Backup PASS (restore qlbanhang_restore_6425c26243f3cf9a), LiveIntegration PASS (qlbanhang_test_0bfb658e50ae4293b86528e5d082858a), lệnh tổng 3 bộ exit 0. Không đổi mật khẩu, không tắt scan và không bỏ kiểm thử. Snapshot/log/bin/obj/.vs không nằm trong commit.

@@ -4,22 +4,22 @@
 
 | STT | Tiêu chí | Điểm | Bằng chứng cần chuẩn bị | Đã kiểm chứng? |
 |---|---|---:|---|---|
-| 1 | Lý thuyết và cài đặt Fauxton | 0,5 | Hướng dẫn + ảnh màn hình | Chưa |
-| 2 | Chức năng của Fauxton | 0,5 | Demo Database, Documents, Query, Index | Chưa |
-| 3 | So sánh Fauxton với GUI Tool khác | 0,5 | Bảng ưu/nhược, khác biệt phạm vi CSDL | Chưa |
-| 4 | Điểm mạnh và loại ứng dụng phù hợp | 0,5 | Lập luận liên quan nghiệp vụ đơn/giao hàng | Chưa |
-| 5a | Tạo database | 0,5 | DB trong Fauxton + script tái lập | Chưa |
-| 5b | Insert dữ liệu đầy đủ | 0,5 | JSON seed + ảnh document | Chưa |
-| 5c | Dữ liệu đáp ứng truy vấn cơ bản | 0,5 | Query + kết quả minh chứng | Chưa |
-| 5d | Dữ liệu đáp ứng truy vấn nâng cao | 0,5 | Mango selector/index + kết quả | Chưa |
-| 6 | Import/Export; Backup/Restore | 0,5 | Hướng dẫn, tệp demo + kết quả khôi phục | Chưa |
-| 7a | Truy vấn cơ bản trên GUI Tool | 0,5 | Kịch bản thực thi Fauxton | Chưa |
-| 7b | Truy vấn nâng cao | 0,5 | Kịch bản thực thi Fauxton | Chưa |
-| 8 | Kết nối CSDL với phần mềm | 0,5 | Code + demo HTTP CouchDB | Có code, chưa test thực tế |
-| 9a | Quản trị người dùng | 0,5 | Đăng nhập/phân quyền và kiểm thử | Chưa |
-| 9b | Thao tác CSDL (CRUD, backup...) | 0,5 | CRUD, backup có kiểm thử | Một phần code |
-| 9c | Nghiệp vụ mô tả bài toán | 0,5 | Demo đơn hàng/giao hàng từ đầu đến cuối | Một phần code |
-| 9d | Chức năng hỗ trợ khác | 0,5 | Thống kê, tìm kiếm, lọc, lịch sử... | Một phần code |
+| 1 | Lý thuyết và cài đặt Fauxton | 0,5 | Hướng dẫn + ảnh màn hình | Tài liệu PASS; ảnh NOT RUN |
+| 2 | Chức năng của Fauxton | 0,5 | Demo Database, Documents, Query, Index | Kịch bản PASS; GUI NOT RUN |
+| 3 | So sánh Fauxton với GUI Tool khác | 0,5 | Bảng ưu/nhược, khác biệt phạm vi CSDL | Tài liệu/nguồn chính thức PASS |
+| 4 | Điểm mạnh và loại ứng dụng phù hợp | 0,5 | Lập luận liên quan nghiệp vụ đơn/giao hàng | Tài liệu PASS |
+| 5a | Tạo database | 0,5 | DB trong Fauxton + script tái lập | API/script thật PASS; ảnh NOT RUN |
+| 5b | Insert dữ liệu đầy đủ | 0,5 | JSON seed + ảnh document | Seed 100 tài liệu PASS; ảnh NOT RUN |
+| 5c | Dữ liệu đáp ứng truy vấn cơ bản | 0,5 | Query + kết quả minh chứng | 5 query API thật PASS |
+| 5d | Dữ liệu đáp ứng truy vấn nâng cao | 0,5 | Mango selector/index + kết quả | 5 query/explain/bookmark PASS |
+| 6 | Import/Export; Backup/Restore | 0,5 | Hướng dẫn, tệp demo + kết quả khôi phục | Snapshot logic/restore 104 doc PASS; backup toàn hệ thống NOT RUN |
+| 7a | Truy vấn cơ bản trên GUI Tool | 0,5 | Kịch bản thực thi Fauxton | API PASS; GUI/ảnh NOT RUN |
+| 7b | Truy vấn nâng cao | 0,5 | Kịch bản thực thi Fauxton | API PASS; GUI/ảnh NOT RUN |
+| 8 | Kết nối CSDL với phần mềm | 0,5 | Code + demo HTTP CouchDB | Xác thực + CRUD/IIS thật PASS |
+| 9a | Quản trị người dùng | 0,5 | Đăng nhập/phân quyền và kiểm thử | 3 vai trò/login/khóa user PASS |
+| 9b | Thao tác CSDL (CRUD, backup...) | 0,5 | CRUD, backup có kiểm thử | CRUD/revision + snapshot logic PASS |
+| 9c | Nghiệp vụ mô tả bài toán | 0,5 | Demo đơn hàng/giao hàng từ đầu đến cuối | Workflow/retry/outbox thật PASS |
+| 9d | Chức năng hỗ trợ khác | 0,5 | Thống kê, tìm kiếm, lọc, lịch sử... | Dashboard/Shipping/Mango UI/lịch sử PASS; ảnh NOT RUN |
 | 10a | Báo cáo đầy đủ, đúng định dạng, không sao chép | 0,5 | Word 50–60 trang | Chưa có file |
 | 10b | Báo cáo lưu loát, trả lời giảng viên | 0,5 | Kịch bản và tập dượt | Chưa kiểm chứng |
 | 10c | Nộp đúng hạn Word, PowerPoint, source | 0,5 | Bộ file nộp | Chưa kiểm chứng |
@@ -84,3 +84,8 @@ Kiểm tra quản trị bổ sung: `/_membership` trả HTTP 403 bằng tài kho
 - PASS kỹ thuật 9b/9c: CRUD có auth, revision cũ/unknown fields, tham chiếu, tổng server, luồng đơn–giao đầy đủ kể cả thất bại/giao lại; durable outbox/retry/xung đột có unit và tích hợp thật. Không tuyên bố ACID xuyên document.
 - PASS 9d: Mango UI tìm/lọc/bookmark, Shipping theo nhân viên; tiếng Việt/CSRF/logout qua IIS. Build/Razor PASS, 49 smoke + 19 unit PASS, Test-Workflow.py exit 0 trên DB riêng.
 - NOT RUN: ảnh GUI, deployment HTTPS thực tế. Admin DB chính phải được sinh viên tạo bằng mật khẩu riêng; source có tool/hướng dẫn, không phát hành mật khẩu mặc định. Lịch sử Git/single-node vẫn chưa xác minh.
+
+### P5 – nghiệm thu cuối
+- PASS mục 6/9b ở phạm vi snapshot logic: export 104 doc + 9 JSON index, restore DB riêng, hash/count/định nghĩa index khớp; nhập lại skip 104 không đổi revision; xung đột ID/index và file không hợp lệ bị từ chối trước ghi. Không export app_user/quyền/config; không gọi đây là backup toàn hệ thống.
+- PASS bộ Run-AllTests.ps1 exit 0: build/Razor, 49 smoke, 21 unit, stub initializer/diagnostic, P2/Mango thật, backup/restore, IIS auth/CRUD/workflow/outbox/Dashboard/Shipping/filters/CSRF, ba lỗi backend thật. Giữ log lần đầu FAIL và cách sửa trong CODEX_PROGRESS.md.
+- Đủ README + DATABASE_DESIGN/FAUXTON_DEMO/TEST_RESULTS/USER_GUIDE/DEPLOYMENT/SCREENSHOT_CHECKLIST/BACKUP_RESTORE; NOT RUN ảnh GUI, demo máy thành viên khác, HTTPS publish và backup toàn máy chủ. BLOCKED xác minh single-node/quyền admin và xử lý credential/lịch sử/Private. Không tự đánh dấu hoàn thành toàn bộ rubric/P6.

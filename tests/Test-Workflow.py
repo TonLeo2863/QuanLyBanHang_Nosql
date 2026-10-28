@@ -8,6 +8,7 @@ from pathlib import Path
 import re
 import secrets
 import sys
+import time
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -20,6 +21,20 @@ users=module('scripts/Create-AppUser.py','users')
 seed=module('scripts/Seed-Demo.py','seed')
 base=os.environ.get('TEST_WEB_URL','http://localhost:52517')
 stage='setup'
+
+def wait_ready():
+    deadline=time.monotonic()+60
+    while True:
+        try:
+            with urllib.request.urlopen(base+'/Account/Login',timeout=5) as response:
+                assert response.status==200, 'IIS readiness status'
+            print('PASS IIS ready')
+            return
+        except urllib.error.HTTPError:
+            raise # A running app returning an error must not be hidden by retries.
+        except (urllib.error.URLError,TimeoutError,ConnectionError):
+            if time.monotonic()>=deadline: raise
+            time.sleep(0.5)
 
 class Browser:
     def __init__(self): self.client=urllib.request.build_opener(urllib.request.HTTPCookieProcessor(http.cookiejar.CookieJar()))
@@ -50,11 +65,23 @@ def save(browser,entity,doc,editing=False,valid=True):
     else: assert 'validation-summary-errors' in body,entity+' expected rejection'
     return body
 
+def verify_dashboard(browser,c):
+    counts=[len(c.all_type(t)) for t in ['customer','product','order','delivery']]
+    shipping=[d for d in c.all_type('delivery') if d['status']=='shipping']
+    body,_=browser.get('/Home')
+    actual=[int(n) for n in re.findall(r'class="(?:home-number|delivery-number)"\s*>\s*(\d+)',body)]
+    assert actual==counts+[len(shipping)], 'Dashboard counts differ from CouchDB'
+    body,_=browser.get('/Shipping')
+    assert int(re.search(r'<strong>(\d+)</strong>',body).group(1))==len(shipping)
+    assert all(d['_id'] in body for d in shipping)
+    print('PASS Dashboard counts and Shipping IDs match real CouchDB')
+
 def run():
     global stage
     c=Couch(); assert c.database.startswith('qlbanhang_test_')
     print('Test database: '+c.database)
     seed.seed(c)
+    wait_ready()
     credentials={name:secrets.token_urlsafe(24) for name in ['qaadmin','qamanager','qashipper','qaother']}
     for name,role in [('qaadmin','Administrator'),('qamanager','OrderManager'),('qashipper','Shipper'),('qaother','Shipper')]:
         assert c.create(users.user_document(name,credentials[name],role))
@@ -69,6 +96,8 @@ def run():
     shipper=Browser();shipper.login('qashipper',credentials['qashipper'])
     other=Browser();other.login('qaother',credentials['qaother'])
     manager.denied('/Account/Users');shipper.denied('/Customer');shipper.denied('/Order/Create');shipper.denied('/Delivery/Create')
+    shipper.denied('/Customer/Create',dict(_id='qa-forbidden',name='Fake'))
+    manager.denied('/Account/Disable',dict(id='app-user-qaadmin',rev='1-fake'))
     stage='users'
     extra=secrets.token_urlsafe(24)
     body,path=admin.post('/Account/Users',dict(Username='qacreated',Password=extra,Role='OrderManager'))
@@ -79,6 +108,7 @@ def run():
     admin.post('/Account/Disable',dict(id=account['_id'],rev=account['_rev']),'/Account/Users')
     new.denied('/Home')
     print('PASS disabled account loses access on next request')
+    verify_dashboard(manager,c)
     stage='customer product CRUD'
     customer=dict(_id='qa-customer',name='Khách mô phỏng',email='qa@example.invalid',address='Địa chỉ giả')
     product=dict(_id='qa-product',name='Sản phẩm giả',price=15000,quantity=10,status='active')
@@ -89,11 +119,19 @@ def run():
         assert c.read(doc['_id'])['name']==edited['name']
         save(manager,entity,edited,editing=True,valid=False)
     invalid=dict(product,_id='qa-invalid',price=-1);save(manager,'Product',invalid,valid=False)
+    save(manager,'Customer',dict(customer,_id='qa-invalid-customer',email='invalid-email'),valid=False)
+    for value in ['0.001','70318705647382105639.70318705']:
+        invalid_body=save(manager,'Product',dict(product,_id='qa-invalid-money',price=value),valid=False)
+        assert 'thập phân' in invalid_body, 'Vietnamese money validation encoding'
+    save(manager,'Product',dict(product,_id='qa-decimal',price='7031870564.27'))
+    assert str(c.read('qa-decimal')['price'])=='7031870564.27'
     order=dict(_id='qa-order',customerId='qa-customer',orderDate='2026-10-28',status='processing',total=1,
                items=[dict(productId='qa-product',quantity=2,price=15000)],address='Địa chỉ giả')
     stage='order transitions'
     save(manager,'Order',dict(order,status='delivered'),valid=False)
     save(manager,'Order',dict(order,customerId='missing'),valid=False)
+    oversized=dict(order,_id='qa-oversized',items=[dict(productId='qa-product',quantity=2000000000,price='999999999999.99')])
+    save(manager,'Order',oversized,valid=False)
     save(manager,'Order',order);assert c.read('qa-order')['total']==30000
     for entity,id in [('Customer','qa-customer'),('Product','qa-product')]:
         rev=c.read(id)['_rev'];manager.post('/'+entity+'/DeleteConfirm',dict(id=id,rev=rev),'/'+entity+'/Delete?id='+id)
@@ -103,6 +141,7 @@ def run():
         save(manager,'Order',dict(c.read('qa-order'),status=status),True)
     stage='delivery CRUD'
     delivery=dict(_id='qa-delivery',orderId='qa-order',status='pending',shipperId='qashipper',address='Địa chỉ giả')
+    save(manager,'Delivery',dict(delivery,orderId='missing-order'),valid=False)
     save(manager,'Delivery',delivery)
     stale=c.read('qa-delivery')['_rev']
     # Only pending delivery can be deleted; current revision required.
@@ -115,6 +154,9 @@ def run():
     save(manager,'Delivery',dict(c.read('qa-delivery2'),status='assigned',shipperId='qamanager'),True,False)
     save(manager,'Delivery',dict(c.read('qa-delivery2'),status='assigned'),True)
     other.denied('/Delivery/Edit?id=qa-delivery2')
+    rev=c.read('qa-delivery2')['_rev']
+    denied_body,_=other.post('/Delivery/Edit',flat(dict(c.read('qa-delivery2'),status='shipping')),'/Delivery')
+    assert 'validation-summary-errors' in denied_body and c.read('qa-delivery2')['_rev']==rev
     assert 'qa-delivery2' not in other.get('/Delivery')[0]
     stage='shipping workflow'
     save(shipper,'Delivery',dict(c.read('qa-delivery2'),status='delivered'),True,False)
@@ -170,6 +212,7 @@ def run():
         try: c.read(doc['_id']);raise AssertionError('delete failed')
         except CouchError as e: assert e.status==404
     print('PASS authenticated P1 delete/stale revision/custom-field CRUD regression')
+    verify_dashboard(manager,c)
     stage='query pages csrf logout'
     body,view_path=manager.get('/Customer')
     assert 'bookmark' in body and view_path=='/Customer' and 'alert-danger' not in body, 'missing next page link or list error'

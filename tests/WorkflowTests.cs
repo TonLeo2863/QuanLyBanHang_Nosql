@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
@@ -49,6 +49,8 @@ class WorkflowTests
             Check(user.passwordHash!=null&&Convert.FromBase64String(user.salt).Length==16,"salt/hash");
             Check(!AppSecurity.Verify(user,"incorrect-password"),"wrong password");
             Check(!AppSecurity.Strong("short"),"minimum password");
+            Check(MoneyAttribute.Valid(7031870564.27m)&&MoneyAttribute.Valid(0.01m),"supported money");
+            Check(!MoneyAttribute.Valid(0.001m)&&!MoneyAttribute.Valid(70318705647382105639.70318705m),"reject money that exceeds precision contract");
             Environment.SetEnvironmentVariable("COUCHDB_URL","http://127.0.0.1:5984");
             Environment.SetEnvironmentVariable("COUCHDB_DATABASE","unit");
             Environment.SetEnvironmentVariable("COUCHDB_USERNAME","unit");

@@ -16,3 +16,5 @@ Lần đầu, người vận hành chạy `Create-AppUser.py` trong terminal đ�
 Document cũ không có `deliveryId`: khi sửa phiếu, ứng dụng chỉ nhận vào quy trình nếu duy nhất một phiếu tham chiếu đơn và trạng thái đang khớp. Phiếu assigned của đơn confirmed cần chuẩn bị đơn trước. Không tự chuyển hàng loạt dữ liệu cũ. Trường hợp nhiều phiếu hoặc trạng thái lệch cần người vận hành đối chiếu riêng; không sửa JSON tùy tiện trên DB chính.
 
 Quyền kiểm tra phía server ở cả URL và POST. Ẩn/hiện menu không phải ranh giới phân quyền. Người có quyền truy cập trực tiếp CouchDB/Fauxton có thể vượt quy tắc ứng dụng; chỉ cấp quyền đó cho người vận hành được tin cậy. Ràng buộc tham chiếu được kiểm tra trước khi xóa; không coi đây là foreign key có tính serializable với thao tác đồng thời hoặc ghi ngoài ứng dụng.
+
+P5 bổ sung miền tiền: giá mỗi item/sản phẩm và tổng đơn từ 0 đến 999999999999.99, tối đa 2 số thập phân, nhập dấu `.`. Giá trị vượt miền bị từ chối trước khi ghi, không âm thầm làm tròn để vừa CouchDB. Import/export thực hiện bằng CLI và DB thử riêng theo BACKUP_RESTORE.md; không tải snapshot có tài khoản/mật khẩu lên website.

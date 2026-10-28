@@ -2,6 +2,7 @@ import importlib.util, pathlib, secrets
 p=pathlib.Path(__file__).with_name("Test-Workflow.py")
 spec=importlib.util.spec_from_file_location("workflow",p);w=importlib.util.module_from_spec(spec);spec.loader.exec_module(w)
 c=w.Couch();w.seed.seed(c)
+w.wait_ready()
 password=secrets.token_urlsafe(24);c.create(w.users.user_document("qapage",password,"Administrator"))
 c.create(dict(_id="qa-extra",type="customer",name="Fake"))
 b=w.Browser();b.login("qapage",password)

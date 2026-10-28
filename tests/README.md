@@ -1,6 +1,31 @@
-﻿# Kiểm thử P0/P1 trên Windows
+﻿# Kiểm thử P0/P5 trên Windows
 
-## Tích hợp thật cập nhật 28/10/2026
+## Bộ nghiệm thu P2–P5 hiện tại
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File tests/Run-AllTests.ps1
+```
+
+Suite dừng ngay khi assertion/lệnh thất bại, không tự bỏ ca lỗi. Chạy bằng tài khoản Windows sở hữu bốn User variables. Cần VS 2022/.NET Framework 4.7.2, NuGet đã restore, Python 3.9+, IIS Express, cổng 52517/52518 trống và quyền tạo DB thử/index trên CouchDB. Không chạy song song hai suite. Không ghi mật khẩu ở tham số command line.
+
+| Lệnh riêng | Phạm vi |
+|---|---|
+| Run-SmokeTests.ps1 | HTTP giả lập, validation/encoding/revision và mọi POST CSRF |
+| Run-WorkflowUnit.ps1 | hash, miền tiền, transitions, inject lỗi projection/ack, recovery/conflict |
+| Test-Initializer.py / Test-ConnectionDiagnostic.py | HTTP stub, không phải DB thật |
+| With-CouchEnvironment.ps1 -Script tests/Test-P2.py | seed thật 100 doc, chạy lại/references/total/index |
+| With-CouchEnvironment.ps1 -Script tests/Test-Mango.py | 5+5 query, _explain và bookmark thật |
+| With-CouchEnvironment.ps1 -Script tests/Test-Backup.py | primary chỉ đọc, restore DB riêng, hash/nội dung/index/idempotency/import lỗi |
+| Run-LiveIntegration.ps1 | build trước khi chạy; auth/CRUD/workflow/outbox/filters/CSRF qua IIS; tạo DB thử riêng |
+| Run-ConnectionFailures.ps1 | IIS với DB thiếu, URL không kết nối, mật khẩu thử sai; không dừng CouchDB thật |
+
+Wrapper ở cột script Python phải chạy với `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/With-CouchEnvironment.ps1 -Script <tệp>`. Test-LiveIntegration.py hiện gọi Test-Workflow.py, không lặp bộ CRUD anonymous cũ. Các assertion quan trọng được giữ trong successor có xác thực; bổ sung phân quyền/tham chiếu/quy trình/đồng bộ.
+
+DB `qlbanhang_test_*` và `qlbanhang_restore_*` được giữ sau test, không tự xóa. Test chỉ xóa tài liệu giả nó vừa tạo để kiểm tra CRUD; seed p2-* trên DB chính chỉ create-only. Export nằm dưới artifacts/backups, bị gitignore. Snapshot không chứa app_user/quyền/config/historical revisions; xem docs/BACKUP_RESTORE.md. GUI/ảnh, single-node với quyền admin và publish HTTPS là kiểm tra riêng, không nằm trong dòng PASS tự động.
+
+Kết quả hiện hành ở docs/TEST_RESULTS.md và CODEX_PROGRESS.md. Phần bên dưới giữ lịch sử P0/P1; các số lượng/cổng/giả định anonymous trong đó không thay hướng dẫn hiện tại. Test-WebSmoke.py đã cập nhật để kiểm tra các route công khai/redirect/CSRF của bản có auth.
+
+## Lịch sử tích hợp P0/P1 ngày 28/10/2026
 
 **Cập nhật P4:** `Run-LiveIntegration.ps1` hiện chạy successor có xác thực (`Test-Workflow.py`) trên DB `qlbanhang_test_<UUID>` riêng, không dùng anonymous CRUD trên DB chính. Cần cổng 52517 trống; DB thử được giữ để đối chiếu, mật khẩu test ngẫu nhiên chỉ ở bộ nhớ. Chạy `Run-SmokeTests.ps1` (49 assertion) và `Run-WorkflowUnit.ps1` (19 assertion). Các hướng dẫn anonymous/52516/44 assertion dưới đây là lịch sử P0/P1, không phải lệnh nghiệm thu cho phiên bản đã có đăng nhập. Test-WebSmoke.py cũ mô tả ca thiếu cấu hình trước khi có auth; kiểm thử mới kiểm tra redirect/403/CSRF theo chính sách mới.
 

@@ -48,10 +48,11 @@ namespace QuanLyBanHang.Services
             Require(input.items.Count>0,"Đơn cần ít nhất một sản phẩm.");
             decimal total=0;
             foreach(var item in input.items) {
-                Require(!string.IsNullOrWhiteSpace(item.productId)&&item.quantity>0&&item.price>=0,"Sản phẩm/số lượng/giá không hợp lệ.");
+                Require(!string.IsNullOrWhiteSpace(item.productId)&&item.quantity>0&&MoneyAttribute.Valid(item.price),"Sản phẩm/số lượng/giá không hợp lệ; giá tối đa 999999999999.99, 2 số thập phân.");
                 await db.ReadDocument<Product>(item.productId,"product");
                 try { total=checked(total+checked(item.quantity*item.price)); } catch(OverflowException) { throw new CouchDbException("Tổng tiền vượt giới hạn."); }
             }
+            Require(MoneyAttribute.Valid(total),"Tổng tiền vượt giới hạn 999999999999.99 hoặc quá 2 số thập phân.");
             input.type="order"; input.total=total;
             var doc=JObject.FromObject(input);
             if(original!=null) doc["history"]=original["history"];
