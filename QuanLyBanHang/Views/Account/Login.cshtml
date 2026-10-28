@@ -1,0 +1,10 @@
+﻿@model QuanLyBanHang.Services.LoginInput
+@{ ViewBag.Title = "Đăng nhập"; }
+<h2>Đăng nhập ứng dụng</h2>
+@using (Html.BeginForm()) {
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(false, "", new { @class="text-danger" })
+    <label>Tên đăng nhập</label>@Html.TextBoxFor(m=>m.Username, new { @class="form-control", autocomplete="username" })
+    <label>Mật khẩu</label>@Html.PasswordFor(m=>m.Password, new { @class="form-control", autocomplete="current-password" })
+    <button class="btn btn-primary" type="submit">Đăng nhập</button>
+}

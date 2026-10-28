@@ -21,7 +21,7 @@ namespace QuanLyBanHang.Models
         [Required]
         public string orderDate { get; set; }
 
-        [RegularExpression("^(processing|shipping|delivered|cancelled)$"), Required]
+        [RegularExpression("^(processing|confirmed|preparing|shipping|delivered|cancelled)$"), Required]
         public string status { get; set; }
 
         public List<OrderItem> items { get; set; }

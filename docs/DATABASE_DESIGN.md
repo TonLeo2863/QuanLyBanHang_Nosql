@@ -29,3 +29,9 @@ Chạy `scripts/Seed-Demo.py` qua `With-CouchEnvironment.ps1`: 20 khách, 30 s�
 Index JSON được khai báo tại `Seed-Demo.py`: type/id; type/status/id; type/customerId/orderDate/id; type/orderDate/id; type/category/price/id; type/price/id; type/total/id; type/orderId/id; type/shipperId/status/id. Chỉ mục phục vụ các prefix tương ứng; điều kiện regex và mảng có thể còn phải lọc trong CouchDB. `_explain` kiểm tra index được chọn, không suy ra mọi điều kiện đều được tăng tốc. Bookmark phải đi cùng selector/sort không đổi.
 
 Nguồn: [Mango API](https://docs.couchdb.org/en/stable/api/database/find.html), [Document API và revision](https://docs.couchdb.org/en/stable/api/document/common.html). Kết quả thực tế xem TEST_RESULTS.md; ảnh Fauxton là minh chứng riêng.
+
+## Phần mở rộng P4
+
+`app_user` là document ứng dụng, tách tài khoản CouchDB: username, role, enabled, salt ngẫu nhiên 16 byte, iterations=600000, passwordHash PBKDF2-HMAC-SHA256 32 byte. Chỉ hiển thị username/role/enabled; không xuất app_user trong dữ liệu demo. Chưa có reset mật khẩu tự phục vụ/MFA; bộ đếm login thất bại chỉ áp dụng trong tiến trình ứng dụng, không thay cổng kiểm soát truy cập khi triển khai công khai.
+
+Order có `history[]`, `deliveryId` và `pendingDelivery` (durable outbox). Ghi CAS trên Order vừa chuyển trạng thái vừa lưu snapshot phiếu cần ghi và revision đích mong đợi. Sau đó ghi Delivery với syncToken; cuối cùng xóa intent bằng revision Order. Chết giữa chừng vẫn còn intent; retry nhận syncToken đã ghi để tránh lặp. Xung đột đích khác expectedRev dừng và giữ intent, không tự overwrite. Đây là nhất quán cuối cùng có kiểm soát, **không** phải transaction ACID hai document; các trang đọc có thể thấy projection chậm khi có lỗi. `/Sync` cho admin xử lý yêu cầu chờ. Không chạy nhiều luồng trạng thái trên cùng Order khi intent chưa hoàn tất.

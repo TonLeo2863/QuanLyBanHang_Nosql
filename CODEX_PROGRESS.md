@@ -1,6 +1,6 @@
 ﻿# Nhật ký tiến độ Codex – QuanLyBanHang_Nosql
 
-Ngày khởi tạo hồ sơ: 28/10/2026. **Trạng thái mới nhất: kiểm thử kỹ thuật P0/P1 với CouchDB thật và IIS Express PASS; chưa xác nhận các việc bảo mật thuộc chủ repo. Chưa triển khai P2.**
+Ngày khởi tạo hồ sơ: 28/10/2026. **Trạng thái mới nhất: P2/P3 kỹ thuật và P4 tích hợp thật PASS; P5 đang triển khai. GUI/ảnh, single-node và bảo mật lịch sử vẫn chưa xác nhận.**
 
 ## Baseline – mã nguồn hiện tại (`master`)
 - [x] Có project ASP.NET MVC5 /.NET Framework 4.7.2 và các controller CRUD cơ bản.
@@ -16,7 +16,7 @@ Ngày khởi tạo hồ sơ: 28/10/2026. **Trạng thái mới nhất: kiểm th
 | P1 – Lỗi nền tảng/CRUD | Kiểm thử kỹ thuật PASS | Xem bản ghi tích hợp cuối tệp | CRUD 4 loại qua IIS; revision, validation, Shipping/Dashboard, lỗi DB/credential PASS | Chưa có ảnh/kiểm tra bố cục; các chức năng P4 chưa thuộc nghiệm thu này |
 | P2 – DB/seed/schema | PASS kỹ thuật | Commit P2 sau bản ghi | 100 seed thật, idempotency, tham chiếu/tổng, Mango/_explain | Ảnh Fauxton thuộc P3 |
 | P3 – Mango/Fauxton query | PASS API/tài liệu; ảnh NOT RUN | Commit P3 | 5+5 query/_explain, bookmark PASS | Chưa thao tác/chụp GUI |
-| P4 – Nghiệp vụ/roles | Chưa làm | — | — | — |
+| P4 – Nghiệp vụ/roles | PASS kỹ thuật/tích hợp | Commit P4 | 49 smoke + 19 unit; full IIS workflow/roles/outbox PASS | Tạo admin thật bằng mật khẩu riêng; GUI NOT RUN |
 | P5 – Backup/tests | Chưa làm | — | — | — |
 | P6 – Báo cáo/demo | Chưa làm | — | — | — |
 
@@ -132,3 +132,14 @@ Ngày khởi tạo hồ sơ: 28/10/2026. **Trạng thái mới nhất: kiểm th
 - **Lỗi đã xử lý:** _explain ban đầu chọn index dự phòng ở query không có sort đủ trường; bổ sung sort phù hợp và chạy lại cả 10 PASS. Một request 403 tạm thời sau bộ thử mật khẩu sai; lần chạy tiếp xác thực lại hoạt động, không thay quyền/credential hoặc vô hiệu cơ chế bảo vệ. Không khẳng định nguyên nhân máy chủ khi chưa có log quản trị.
 - **Rubric:** 1–4/5c/5d/7a/7b thêm tài liệu và API test; thao tác GUI/ảnh vẫn NOT RUN, không dùng API làm bằng chứng đã chạy GUI. Không đo hiệu năng. Single-node/lịch sử Git vẫn chưa xác nhận.
 - **Git:** commit P3 cục bộ tiếng Việt sau diff/secret scan; không push/merge. Chuyển P4.
+
+### 2026-10-28 – P4: phân quyền, nghiệp vụ và phục hồi đồng bộ
+- **Đã làm/files:** Services/AppSecurity.cs, AccountController + Views/Account: Forms Authentication, PBKDF2-HMAC-SHA256 600000 vòng/salt ngẫu nhiên, 3 vai trò, admin tạo/khóa tài khoản, bộ đếm login lỗi trong tiến trình. Global filter và kiểm tra quyền POST/URL; Web.config cookie HttpOnly/SameSite, timeout 30 phút, Release transform yêu cầu HTTPS. scripts/Create-AppUser.py tạo-only, nhập mật khẩu riêng, không có tài khoản/mật khẩu mặc định.
+- **Nghiệp vụ:** WorkflowService.cs + Order/Delivery controllers kiểm tra transitions, tham chiếu/giá/số lượng/tổng; Order history/deliveryId/pendingDelivery durable outbox, CAS revision, retry idempotent, khóa đơn đang chờ, không overwrite projection có revision khác. SyncController/Views cho admin. Chặn xóa document đang được tham chiếu; chỉ xóa phiếu pending. Legacy chỉ nhận vào quy trình khi duy nhất một phiếu và trạng thái khớp.
+- **Truy vấn/UI:** QueryService + FindPage/HasReference trong CouchDbService; bộ lọc Mango và bookmark 20/trang trên 4 danh sách; Shipper chỉ thấy/sửa phiếu được giao, Shipping 100/trang. Views trạng thái và lịch sử, menu đăng xuất; docs/USER_GUIDE.md và DATABASE_DESIGN.md giải thích nhất quán cuối cùng/giới hạn.
+- **Kiểm thử thực tế PASS:** build ứng dụng + Razor VS 2022/.NET Framework 4.7.2; Run-SmokeTests.ps1 49 assertion (mở rộng CSRF Account/Sync, không bỏ ca cũ); Run-WorkflowUnit.ps1 19 assertion (hash/transition và lỗi ghi projection/ack, retry, xung đột). Run-LiveIntegration.ps1 đã chuyển sang successor có xác thực Test-Workflow.py qua Run-SystemTests.ps1; DB riêng `qlbanhang_test_7cfbcf0b10f840d8a7e4cb3bc201b023`, exit 0.
+- **Tích hợp PASS:** login 3 vai trò; anonymous bị chuyển Login, Shipper/Manager bị 403 khi vượt quyền; admin tạo/khóa tài khoản, cookie tài khoản khóa bị từ chối ngay request sau. CRUD/validation/mã trùng; tổng server; chặn xóa tham chiếu; revision cũ và trường phụ; processing→confirmed→preparing→assigned→shipping→failed→assigned→shipping→delivered; Order khớp Delivery, Shipping lọc theo nhân viên. Outbox phục hồi crash giả lập trên DB thật, lock, retry không trùng, xung đột giữ nguyên revision ngoài. Phân trang/lọc, CSRF và logout PASS.
+- **Lỗi đã sửa:** Razor thiếu @foreach gây build FAIL, sửa và build lại PASS. Assertion nhãn trang tiếp theo FAIL do Razor mới không BOM bị đọc UTF-8 thành ký tự sai; thêm BOM/encoding rõ ràng và giữ assertion tiếng Việt, chạy lại toàn bộ PASS. Bộ test cũ anonymous được nâng cấp theo chính sách auth mới, các ca CRUD/revision/bảo toàn dữ liệu được giữ trong successor.
+- **Dữ liệu/an toàn:** chỉ ghi/test trên DB thử riêng, giữ DB để đối chiếu; không sửa credential/quyền CouchDB hoặc tài liệu qlbanhang. Mật khẩu test ngẫu nhiên chỉ ở bộ nhớ, app_user chỉ có hash và không hiển thị trong View. Chưa tạo admin cố định trong DB chính; sinh viên tự nhập bí mật riêng bằng tool. Không tự cấp quyền admin để gọi membership.
+- **Giới hạn:** không có transaction hai document, Shipping có thể tạm chậm khi projection lỗi; thao tác trực tiếp DB/multiple writers có thể vượt ràng buộc tham chiếu, đã ghi trong hướng dẫn. Không coi kiểm tra trước xóa là foreign key serializable. GUI và kiểm tra HTTPS deployment NOT RUN; MFA/reset mật khẩu tự phục vụ ngoài phạm vi demo. Rubric 9a–9d có thêm test; chưa tự chấm điểm.
+- **Git:** commit P4 tiếng Việt sau diff/secret scan; không push/merge. Bước tiếp P5, hoàn tất snapshot/import/restore và tài liệu bàn giao.

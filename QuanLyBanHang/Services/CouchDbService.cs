@@ -12,7 +12,8 @@ namespace QuanLyBanHang.Services
 {
     public class CouchDbException : Exception
     {
-        public CouchDbException(string message) : base(message) { }
+        public int StatusCode { get; private set; }
+        public CouchDbException(string message, int statusCode = 0) : base(message) { StatusCode = statusCode; }
     }
 
     public class CouchDbService
@@ -54,7 +55,7 @@ namespace QuanLyBanHang.Services
                             {
                                 case 401: throw new CouchDbException("CouchDB từ chối đăng nhập. Kiểm tra tài khoản và mật khẩu cấu hình.");
                                 case 403: throw new CouchDbException("Tài khoản CouchDB không có quyền thực hiện thao tác.");
-                                case 404: throw new CouchDbException("Không tìm thấy database hoặc tài liệu. Chạy script khởi tạo nếu database chưa tồn tại.");
+                                case 404: throw new CouchDbException("Không tìm thấy database hoặc tài liệu. Chạy script khởi tạo nếu database chưa tồn tại.", 404);
                                 case 409: throw new CouchDbException("Mã đã tồn tại hoặc dữ liệu đã được sửa bởi người khác. Tải lại dữ liệu trước khi thử lại.");
                                 default: throw new CouchDbException("CouchDB không thể xử lý yêu cầu. Vui lòng thử lại sau.");
                             }
@@ -91,10 +92,28 @@ namespace QuanLyBanHang.Services
             }
             return documents;
         }
-        private class FindResponse<T>
+        public class FindResponse<T>
         {
             public List<T> docs { get; set; }
             public string bookmark { get; set; }
+        }
+        public async Task<FindResponse<T>> FindPage<T>(JObject selector, string bookmark = null, int limit = 20)
+        {
+            if (limit < 1 || limit > 100) throw new CouchDbException("Kích thước trang không hợp lệ.");
+            var query = new JObject { ["selector"] = selector, ["limit"] = limit,
+                ["sort"] = new JArray(new JObject { ["type"] = "asc" }, new JObject { ["_id"] = "asc" }), ["use_index"] = "idx-type-id" };
+            if (!string.IsNullOrWhiteSpace(bookmark)) query["bookmark"] = bookmark;
+            try {
+                var result = JsonConvert.DeserializeObject<FindResponse<T>>(await Send(HttpMethod.Post, "/_find", query));
+                if (result == null || result.docs == null) throw new JsonException();
+                return result;
+            } catch (JsonException) { throw new CouchDbException("Dữ liệu phân trang không hợp lệ."); }
+        }
+        public async Task<bool> HasReference(string type, string field, string id, bool array = false)
+        {
+            var selector = new JObject { ["type"] = type };
+            selector[array ? "items" : field] = array ? (JToken)new JObject { ["$elemMatch"] = new JObject { [field] = id } } : new JValue(id);
+            return (await FindPage<JObject>(selector, null, 1)).docs.Count != 0;
         }
         public async Task<T> ReadDocument<T>(string id, string type)
         {

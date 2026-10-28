@@ -78,3 +78,9 @@ Kiểm tra quản trị bổ sung: `/_membership` trả HTTP 403 bằng tài kho
 - PASS tài liệu: FAUXTON_DEMO.md (10 thao tác, phạm vi GUI/API, so sánh Compass, ưu/nhược/ứng dụng và nguồn chính thức).
 - PASS thực thi API: 5 query cơ bản + 5 nâng cao, số lượng seed đúng, _explain chọn đúng index; phân trang limit 7 đầy đủ/không trùng.
 - NOT RUN: 7a/7b trên GUI, ảnh Fauxton theo SCREENSHOT_CHECKLIST.md; chưa đánh dấu toàn bộ mục GUI hoàn thành. Không có số liệu benchmark được tuyên bố.
+
+### P4 – kiểm thử ứng dụng thật
+- PASS 9a: PBKDF2/salt, đăng nhập/đăng xuất, ba vai trò kiểm tra server, admin tạo/khóa user, tài khoản khóa bị chặn request tiếp theo; không có mật khẩu mặc định.
+- PASS kỹ thuật 9b/9c: CRUD có auth, revision cũ/unknown fields, tham chiếu, tổng server, luồng đơn–giao đầy đủ kể cả thất bại/giao lại; durable outbox/retry/xung đột có unit và tích hợp thật. Không tuyên bố ACID xuyên document.
+- PASS 9d: Mango UI tìm/lọc/bookmark, Shipping theo nhân viên; tiếng Việt/CSRF/logout qua IIS. Build/Razor PASS, 49 smoke + 19 unit PASS, Test-Workflow.py exit 0 trên DB riêng.
+- NOT RUN: ảnh GUI, deployment HTTPS thực tế. Admin DB chính phải được sinh viên tạo bằng mật khẩu riêng; source có tool/hướng dẫn, không phát hành mật khẩu mặc định. Lịch sử Git/single-node vẫn chưa xác minh.

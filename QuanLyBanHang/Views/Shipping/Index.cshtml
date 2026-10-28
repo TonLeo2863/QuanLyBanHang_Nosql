@@ -101,3 +101,5 @@
     }
 
 </div>
+
+@if(ViewBag.NextBookmark!=null) { <a href="@Url.Action("Index",new { bookmark=(string)ViewBag.NextBookmark })">Trang tiếp theo</a> }

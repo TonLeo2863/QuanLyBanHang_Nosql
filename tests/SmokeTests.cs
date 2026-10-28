@@ -89,7 +89,7 @@ class SmokeTests
             stub.Reply = r => Response(200, "{\"type\":\"customer\"}");
             Error(() => db.ReadDocument<Product>("x", "product").GetAwaiter().GetResult(), "wrong type");
         }
-        foreach (var controller in new[] {typeof(CustomerController),typeof(ProductController),typeof(OrderController),typeof(DeliveryController)})
+        foreach (var controller in new[] {typeof(CustomerController),typeof(ProductController),typeof(OrderController),typeof(DeliveryController),typeof(AccountController),typeof(SyncController)})
         foreach (var method in controller.GetMethods())
             if (Attribute.IsDefined(method, typeof(HttpPostAttribute)))
                 Check(Attribute.IsDefined(method, typeof(ValidateAntiForgeryTokenAttribute)), "CSRF " + controller.Name + method.Name);
@@ -101,6 +101,9 @@ class SmokeTests
         }
         foreach (var controller in new Controller[] {new CustomerController(),new ProductController(),new OrderController(),new DeliveryController(),new ShippingController()})
         {
+            var context = new System.Web.HttpContext(new System.Web.HttpRequest("", "http://localhost/", ""), new System.Web.HttpResponse(new System.IO.StringWriter()));
+            context.User = new System.Security.Principal.GenericPrincipal(new System.Security.Principal.GenericIdentity(""), new string[0]);
+            controller.ControllerContext = new ControllerContext(new System.Web.HttpContextWrapper(context), new System.Web.Routing.RouteData(), controller);
             var task = (Task<ActionResult>)controller.GetType().GetMethod("Index").Invoke(controller, null);
             Check(task.GetAwaiter().GetResult() is ViewResult && controller.ViewBag.Error != null, "list missing config " + controller.GetType().Name);
             controller.Dispose();

@@ -1,0 +1,22 @@
+﻿@model QuanLyBanHang.Services.CreateUserInput
+@{ ViewBag.Title = "Người dùng"; }
+<h2>Quản trị người dùng ứng dụng</h2>
+<table class="table"><tr><th>Tài khoản</th><th>Vai trò</th><th>Hoạt động</th></tr>
+@if (ViewBag.Users != null) { foreach (QuanLyBanHang.Services.AppUser user in ViewBag.Users) {
+<tr><td>@user.username</td><td>@user.role</td><td>@user.enabled
+@if(user.enabled && user.username!=User.Identity.Name) {
+    using(Html.BeginForm("Disable","Account",FormMethod.Post)) {
+        @Html.AntiForgeryToken() @Html.Hidden("id",user._id) @Html.Hidden("rev",user._rev)
+        <button type="submit" class="btn btn-warning">Khóa tài khoản</button>
+    }
+}
+</td></tr>
+} }
+</table>
+@using (Html.BeginForm()) {
+    @Html.AntiForgeryToken() @Html.ValidationSummary(false, "", new { @class="text-danger" })
+    <label>Tài khoản mới (chữ thường, 3–50 ký tự)</label>@Html.TextBoxFor(m=>m.Username, new { @class="form-control" })
+    <label>Mật khẩu mới (12–128 ký tự)</label>@Html.PasswordFor(m=>m.Password, new { @class="form-control", autocomplete="new-password" })
+    <label>Vai trò</label>@Html.DropDownListFor(m=>m.Role, new SelectList(new[]{"Administrator","OrderManager","Shipper"}), new { @class="form-control" })
+    <button type="submit" class="btn btn-primary">Tạo tài khoản</button>
+}

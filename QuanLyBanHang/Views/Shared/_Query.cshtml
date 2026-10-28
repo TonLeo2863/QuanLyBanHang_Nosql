@@ -1,0 +1,18 @@
+﻿@using System.Web.Routing
+<form method="get" class="mb-3">
+    <label>Tìm tên/mã <input name="q" value="@Request.QueryString["q"]" maxlength="100" /></label>
+    <label>Trạng thái <input name="status" value="@Request.QueryString["status"]" /></label>
+    <label>Danh mục <input name="category" value="@Request.QueryString["category"]" /></label>
+    <label>Mã khách <input name="customer" value="@Request.QueryString["customer"]" /></label>
+    <label>Từ tiền <input name="min" value="@Request.QueryString["min"]" type="number" min="0" /></label>
+    <label>Đến tiền <input name="max" value="@Request.QueryString["max"]" type="number" min="0" /></label>
+    <label>Từ ngày <input name="from" value="@Request.QueryString["from"]" type="date" /></label>
+    <label>Đến ngày <input name="to" value="@Request.QueryString["to"]" type="date" /></label>
+    <button type="submit" class="btn btn-primary">Lọc</button>
+</form>
+@if(ViewBag.NextBookmark!=null) {
+    var values=new RouteValueDictionary();
+    foreach(string key in Request.QueryString.AllKeys) { if(key!=null && key!="bookmark") { values[key]=Request.QueryString[key]; } }
+    values["bookmark"]=(string)ViewBag.NextBookmark;
+    <a href="@Url.Action("Index",values)">Trang tiếp theo →</a>
+}

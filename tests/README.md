@@ -2,6 +2,8 @@
 
 ## Tích hợp thật cập nhật 28/10/2026
 
+**Cập nhật P4:** `Run-LiveIntegration.ps1` hiện chạy successor có xác thực (`Test-Workflow.py`) trên DB `qlbanhang_test_<UUID>` riêng, không dùng anonymous CRUD trên DB chính. Cần cổng 52517 trống; DB thử được giữ để đối chiếu, mật khẩu test ngẫu nhiên chỉ ở bộ nhớ. Chạy `Run-SmokeTests.ps1` (49 assertion) và `Run-WorkflowUnit.ps1` (19 assertion). Các hướng dẫn anonymous/52516/44 assertion dưới đây là lịch sử P0/P1, không phải lệnh nghiệm thu cho phiên bản đã có đăng nhập. Test-WebSmoke.py cũ mô tả ca thiếu cấu hình trước khi có auth; kiểm thử mới kiểm tra redirect/403/CSRF theo chính sách mới.
+
 Đã chạy với CouchDB thật và IIS Express. Các ghi nhận thiếu cấu hình bên dưới là lịch sử trước khi thiết lập biến User.
 
 ```powershell

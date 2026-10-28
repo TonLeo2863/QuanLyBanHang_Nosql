@@ -7,13 +7,14 @@ using QuanLyBanHang.Services;
 
 namespace QuanLyBanHang.Controllers
 {
+    [AppAuthorize(Roles="Administrator,OrderManager")]
     public class CustomerController : Controller
     {
         private readonly CouchDbService couchDbService = new CouchDbService();
         public async Task<ActionResult> Index()
         {
             var documents = new List<Customer>();
-            try { documents = await couchDbService.FindDocuments<Customer>("customer"); }
+            try { documents = await QueryService.Load<Customer>(this, couchDbService, "customer"); }
             catch (CouchDbException ex) { ViewBag.Error = ex.Message; }
             return View(documents);
         }
@@ -54,6 +55,7 @@ namespace QuanLyBanHang.Controllers
             try
             {
                 await couchDbService.ReadDocument<Customer>(id, "customer");
+                if (await couchDbService.HasReference("order", "customerId", id, false)) throw new CouchDbException("Dữ liệu đang được đơn hàng tham chiếu; không thể xóa.");
                 await couchDbService.DeleteDocument(id, rev);
             }
             catch (CouchDbException ex) { TempData["Error"] = ex.Message; }
