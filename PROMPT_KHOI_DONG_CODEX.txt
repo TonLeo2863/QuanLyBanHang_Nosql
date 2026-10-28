@@ -1,0 +1,13 @@
+Bạn đang tiếp tục đồ án ASP.NET MVC 5 / .NET Framework 4.7.2 / CouchDB-Fauxton nhóm 7 HUIT.
+
+Đọc AGENTS.md, ROADMAP_NOSQL.md, RUBRIC_CHECKLIST.md, CODEX_PROGRESS.md, docs/TEST_RESULTS.md và docs/RELEASE_READINESS.md. Kiểm tra git status, nhánh, HEAD và diff trước khi sửa. Làm trên codex/nosql-completion; không tự chuyển master thành main.
+
+P0–P5 đã có commit kỹ thuật. Xác minh kết quả và làm việc còn thiếu hoặc lỗi mới; không bắt đầu lại P0/P1, không ghi đè công việc đang có, không báo GUI/ảnh hoặc việc bảo mật đã PASS nếu chưa có bằng chứng. Giữ stack và toàn bộ commit P0–P5.
+
+Ưu tiên điều kiện phát hành: quét file chuẩn bị commit và lịch sử bằng công cụ không in giá trị bí mật; kiểm tra origin đúng TonLeo2863/QuanLyBanHang_Nosql; xác minh Public/Private bằng quyền hợp lệ. Audit sau P5 phát hiện mật khẩu đang cấu hình trùng mật khẩu hardcode trong lịch sử. Không thử đăng nhập bằng credential lấy từ lịch sử; chủ repo phải thu hồi/thay credential, bảo vệ repo và quyết định kế hoạch xử lý lịch sử. Không tự thay credential bên ngoài, rewrite/force push hoặc merge master.
+
+Mọi sửa đổi dữ liệu chỉ dùng dữ liệu giả/DB thử; không xóa hoặc overwrite dữ liệu thật. Mọi POST ứng dụng có validation, anti-forgery và kiểm tra quyền server. Giữ kiểm thử đang có; lỗi phải tìm nguyên nhân, sửa và chạy lại ca liên quan.
+
+Build gồm Razor; chạy test phù hợp trên Windows/CouchDB thật khi có cấu hình mới an toàn. Sau mỗi bước cập nhật tiến độ/rubric với PASS/FAIL/BLOCKED/NOT RUN, nêu rõ phần chưa kiểm chứng. Tài liệu P6/ảnh Fauxton còn thiếu phải làm bằng bằng chứng thật, không tạo ảnh giả.
+
+Commit title/body, PR title/body/comment bằng tiếng Việt có dấu. Quét bí mật/diff trước commit. Chỉ commit file đã rà soát; không bin/obj/.vs/snapshot/token/credential. Không tự push: chỉ tiến hành khi chủ repo đã cho phép và điều kiện phát hành được xác minh đầy đủ. Nếu chưa đạt, báo rõ blocker và giữ commit cục bộ. Không merge master.

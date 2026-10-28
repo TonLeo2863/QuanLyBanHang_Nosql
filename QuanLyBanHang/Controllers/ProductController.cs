@@ -1,5 +1,5 @@
-﻿using Newtonsoft.Json;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using QuanLyBanHang.Models;
@@ -7,226 +7,58 @@ using QuanLyBanHang.Services;
 
 namespace QuanLyBanHang.Controllers
 {
+    [AppAuthorize(Roles="Administrator,OrderManager")]
     public class ProductController : Controller
     {
-        private readonly CouchDbService couchDbService;
-
-        public ProductController()
-        {
-            couchDbService =
-                new CouchDbService();
-        }
-
-        // =========================
-        // DANH SÁCH SẢN PHẨM
-        // =========================
+        private readonly CouchDbService couchDbService = new CouchDbService();
         public async Task<ActionResult> Index()
         {
-            string data =
-                await couchDbService.GetAllDocuments();
-
-            dynamic result =
-                JsonConvert.DeserializeObject(data);
-
-            List<Product> products =
-                new List<Product>();
-
-            foreach (dynamic row in result.rows)
-            {
-                if (row.doc != null)
-                {
-                    string type =
-                        row.doc.type;
-
-                    if (type == "product")
-                    {
-                        Product product =
-                            JsonConvert.DeserializeObject<Product>(
-                                row.doc.ToString()
-                            );
-
-                        products.Add(product);
-                    }
-                }
-            }
-
-            return View(products);
+            var documents = new List<Product>();
+            try { documents = await QueryService.Load<Product>(this, couchDbService, "product"); }
+            catch (CouchDbException ex) { ViewBag.Error = ex.Message; }
+            return View(documents);
         }
-
-
-        // =========================
-        // GET: CREATE
-        // =========================
         [HttpGet]
-        public ActionResult Create()
-        {
-            return View();
-        }
-
-
-        // =========================
-        // POST: CREATE
-        // =========================
-        [HttpPost]
-        public async Task<ActionResult> Create(
-            Product product)
-        {
-            if (string.IsNullOrWhiteSpace(product._id))
-            {
-                ViewBag.Error =
-                    "Mã sản phẩm không được để trống.";
-
-                return View(product);
-            }
-
-            if (string.IsNullOrWhiteSpace(product.name))
-            {
-                ViewBag.Error =
-                    "Tên sản phẩm không được để trống.";
-
-                return View(product);
-            }
-
-            product.type = "product";
-
-            string result =
-                await couchDbService.CreateDocument(
-                    product._id,
-                    product
-                );
-
-            if (result.Contains("\"ok\":true"))
-            {
-                return RedirectToAction("Index");
-            }
-
-            ViewBag.Error =
-                "Không thể thêm sản phẩm: "
-                + result;
-
-            return View(product);
-        }
-
-
-        // =========================
-        // GET: EDIT
-        // =========================
+        public ActionResult Create() { return View(new Product()); }
         [HttpGet]
-        public async Task<ActionResult> Edit(
-            string id)
-        {
-            if (string.IsNullOrWhiteSpace(id))
-            {
-                return RedirectToAction("Index");
-            }
-
-            string data =
-                await couchDbService.GetDocument(id);
-
-            Product product =
-                JsonConvert.DeserializeObject<Product>(
-                    data
-                );
-
-            if (product == null)
-            {
-                return RedirectToAction("Index");
-            }
-
-            return View(product);
-        }
-
-
-        // =========================
-        // POST: EDIT
-        // =========================
-        [HttpPost]
-        public async Task<ActionResult> Edit(
-            Product product)
-        {
-            if (string.IsNullOrWhiteSpace(product._id))
-            {
-                ViewBag.Error =
-                    "Mã sản phẩm không được để trống.";
-
-                return View(product);
-            }
-
-            if (string.IsNullOrWhiteSpace(product.name))
-            {
-                ViewBag.Error =
-                    "Tên sản phẩm không được để trống.";
-
-                return View(product);
-            }
-
-            product.type = "product";
-
-            string result =
-                await couchDbService.UpdateDocument(
-                    product._id,
-                    product
-                );
-
-            if (result.Contains("\"ok\":true"))
-            {
-                return RedirectToAction("Index");
-            }
-
-            ViewBag.Error =
-                "Không thể cập nhật sản phẩm: "
-                + result;
-
-            return View(product);
-        }
-
-
-        // =========================
-        // GET: DELETE
-        // =========================
+        public async Task<ActionResult> Edit(string id) { return await Load(id, "Edit"); }
         [HttpGet]
-        public async Task<ActionResult> Delete(
-            string id)
+        public async Task<ActionResult> Delete(string id) { return await Load(id, "Delete"); }
+        private async Task<ActionResult> Load(string id, string view)
         {
-            if (string.IsNullOrWhiteSpace(id))
-            {
-                return RedirectToAction("Index");
-            }
-
-            string data =
-                await couchDbService.GetDocument(id);
-
-            Product product =
-                JsonConvert.DeserializeObject<Product>(
-                    data
-                );
-
-            if (product == null)
-            {
-                return RedirectToAction("Index");
-            }
-
-            return View(product);
+            try { return View(view, await couchDbService.ReadDocument<Product>(id, "product")); }
+            catch (CouchDbException ex) { TempData["Error"] = ex.Message; return RedirectToAction("Index"); }
         }
-
-
-        // =========================
-        // POST: DELETE
-        // =========================
-        [HttpPost]
-        public async Task<ActionResult> DeleteConfirm(
-            string id,
-            string rev)
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<ActionResult> Create(Product product) { return await Save(product, false); }
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<ActionResult> Edit(Product product) { return await Save(product, true); }
+        private async Task<ActionResult> Save(Product product, bool editing)
         {
-            if (!string.IsNullOrWhiteSpace(id) &&
-                !string.IsNullOrWhiteSpace(rev))
+            var view = editing ? "Edit" : "Create";
+            if (!ModelState.IsValid) return View(view, product);
+            try
             {
-                await couchDbService.DeleteDocument(
-                    id,
-                    rev
-                );
-            }
+                product.type = "product";
+                if (editing) await couchDbService.ReadDocument<Product>(product._id, "product");
 
+                if (!ModelState.IsValid) return View(view, product);
+                if (editing) await couchDbService.UpdateDocument(product._id, product);
+                else await couchDbService.CreateDocument(product._id, product);
+                return RedirectToAction("Index");
+            }
+            catch (CouchDbException ex) { ModelState.AddModelError("", ex.Message); return View(view, product); }
+        }
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<ActionResult> DeleteConfirm(string id, string rev)
+        {
+            try
+            {
+                await couchDbService.ReadDocument<Product>(id, "product");
+                if (await couchDbService.HasReference("order", "productId", id, true)) throw new CouchDbException("Dữ liệu đang được đơn hàng tham chiếu; không thể xóa.");
+                await couchDbService.DeleteDocument(id, rev);
+            }
+            catch (CouchDbException ex) { TempData["Error"] = ex.Message; }
             return RedirectToAction("Index");
         }
     }

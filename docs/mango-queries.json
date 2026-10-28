@@ -1,0 +1,278 @@
+[
+  {
+    "id": "B1",
+    "title": "Khách hàng theo loại",
+    "query": {
+      "selector": {
+        "type": "customer"
+      },
+      "use_index": "idx-type-id",
+      "sort": [
+        {
+          "type": "asc"
+        },
+        {
+          "_id": "asc"
+        }
+      ],
+      "limit": 200
+    },
+    "expectedSeedCount": 20
+  },
+  {
+    "id": "B2",
+    "title": "Sản phẩm theo danh mục",
+    "query": {
+      "selector": {
+        "type": "product",
+        "category": "Điện tử"
+      },
+      "use_index": "idx-type-category-price",
+      "limit": 200,
+      "sort": [
+        {
+          "type": "asc"
+        },
+        {
+          "category": "asc"
+        },
+        {
+          "price": "asc"
+        },
+        {
+          "_id": "asc"
+        }
+      ]
+    },
+    "expectedSeedCount": 10
+  },
+  {
+    "id": "B3",
+    "title": "Đơn theo khách",
+    "query": {
+      "selector": {
+        "type": "order",
+        "customerId": "p2-customer-001"
+      },
+      "use_index": "idx-type-customer-date",
+      "limit": 200,
+      "sort": [
+        {
+          "type": "asc"
+        },
+        {
+          "customerId": "asc"
+        },
+        {
+          "orderDate": "asc"
+        },
+        {
+          "_id": "asc"
+        }
+      ]
+    },
+    "expectedSeedCount": 2
+  },
+  {
+    "id": "B4",
+    "title": "Đơn đang giao",
+    "query": {
+      "selector": {
+        "type": "order",
+        "status": "shipping"
+      },
+      "use_index": "idx-type-status-id",
+      "limit": 200,
+      "sort": [
+        {
+          "type": "asc"
+        },
+        {
+          "status": "asc"
+        },
+        {
+          "_id": "asc"
+        }
+      ]
+    },
+    "expectedSeedCount": 5
+  },
+  {
+    "id": "B5",
+    "title": "Phiếu giao thành công",
+    "query": {
+      "selector": {
+        "type": "delivery",
+        "status": "delivered"
+      },
+      "use_index": "idx-type-status-id",
+      "limit": 200,
+      "sort": [
+        {
+          "type": "asc"
+        },
+        {
+          "status": "asc"
+        },
+        {
+          "_id": "asc"
+        }
+      ]
+    },
+    "expectedSeedCount": 5
+  },
+  {
+    "id": "A1",
+    "title": "Giá sản phẩm trong khoảng",
+    "query": {
+      "selector": {
+        "type": "product",
+        "price": {
+          "$gte": 100000,
+          "$lte": 200000
+        }
+      },
+      "use_index": "idx-type-price",
+      "sort": [
+        {
+          "type": "asc"
+        },
+        {
+          "price": "asc"
+        },
+        {
+          "_id": "asc"
+        }
+      ],
+      "limit": 200
+    },
+    "expectedSeedCount": 11
+  },
+  {
+    "id": "A2",
+    "title": "Đơn theo khoảng ngày",
+    "query": {
+      "selector": {
+        "type": "order",
+        "orderDate": {
+          "$gte": "2026-10-10",
+          "$lte": "2026-10-20"
+        }
+      },
+      "use_index": "idx-type-date",
+      "sort": [
+        {
+          "type": "asc"
+        },
+        {
+          "orderDate": "asc"
+        },
+        {
+          "_id": "asc"
+        }
+      ],
+      "limit": 200
+    },
+    "expectedSeedCount": 11
+  },
+  {
+    "id": "A3",
+    "title": "Đơn giá trị lớn nhiều điều kiện",
+    "query": {
+      "selector": {
+        "type": "order",
+        "total": {
+          "$gte": 600000
+        },
+        "status": {
+          "$in": [
+            "shipping",
+            "delivered"
+          ]
+        }
+      },
+      "use_index": "idx-type-total",
+      "limit": 200,
+      "sort": [
+        {
+          "type": "asc"
+        },
+        {
+          "total": "asc"
+        },
+        {
+          "_id": "asc"
+        }
+      ]
+    },
+    "expectedSeedCount": 4
+  },
+  {
+    "id": "A4",
+    "title": "Đơn chứa sản phẩm và số lượng",
+    "query": {
+      "selector": {
+        "type": "order",
+        "items": {
+          "$elemMatch": {
+            "productId": "p2-product-010",
+            "quantity": {
+              "$gte": 2
+            }
+          }
+        }
+      },
+      "use_index": "idx-type-id",
+      "limit": 200,
+      "sort": [
+        {
+          "type": "asc"
+        },
+        {
+          "_id": "asc"
+        }
+      ]
+    },
+    "expectedSeedCount": 1
+  },
+  {
+    "id": "A5",
+    "title": "Tìm kiếm tên và danh mục kết hợp",
+    "query": {
+      "selector": {
+        "type": "product",
+        "$and": [
+          {
+            "category": {
+              "$in": [
+                "Điện tử",
+                "Văn phòng"
+              ]
+            }
+          },
+          {
+            "name": {
+              "$regex": "mô phỏng"
+            }
+          },
+          {
+            "price": {
+              "$gt": 200000
+            }
+          }
+        ]
+      },
+      "use_index": "idx-type-id",
+      "limit": 200,
+      "sort": [
+        {
+          "type": "asc"
+        },
+        {
+          "_id": "asc"
+        }
+      ]
+    },
+    "expectedSeedCount": 6
+  }
+]

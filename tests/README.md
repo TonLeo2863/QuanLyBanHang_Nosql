@@ -1,0 +1,145 @@
+﻿# Kiểm thử P0/P5 trên Windows
+
+## Bộ nghiệm thu P2–P5 hiện tại
+
+**Chặn phát hành sau audit:** credential cấu hình hiện tại đã được xác định trùng literal lịch sử. Chưa chạy lại tích hợp/backup bằng credential đó; chủ repo cần thay/thu hồi và cập nhật cấu hình mới trước. Build/unit không dùng CouchDB thật vẫn chạy được. Xem docs/RELEASE_READINESS.md.
+
+Kiểm tra chỉ đọc và công cụ an toàn:
+
+```powershell
+python tests/Test-GitSafety.py
+node tests/Test-PrWorkflow.js
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/With-CouchEnvironment.ps1 -Script scripts/Audit-GitSafety.py
+```
+
+Audit không gọi CouchDB hoặc thử credential cũ; chỉ đối chiếu trong bộ nhớ và in metadata. Exit 1 = phát hiện trong file/lịch sử hoặc origin không an toàn, exit 2 = lỗi/thiếu điều kiện, exit 0 không thay thế xác minh Private/thu hồi credential. Workflow test dùng mock, không gửi bình luận GitHub; cần Node.js đã có trên PATH. Không lấy fixture kiểm thử làm lý do bỏ qua credential thật.
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File tests/Run-AllTests.ps1
+```
+
+Suite dừng ngay khi assertion/lệnh thất bại, không tự bỏ ca lỗi. Chạy bằng tài khoản Windows sở hữu bốn User variables. Cần VS 2022/.NET Framework 4.7.2, NuGet đã restore, Python 3.9+, IIS Express, cổng 52517/52518 trống và quyền tạo DB thử/index trên CouchDB. Không chạy song song hai suite. Không ghi mật khẩu ở tham số command line.
+
+| Lệnh riêng | Phạm vi |
+|---|---|
+| Run-SmokeTests.ps1 | HTTP giả lập, validation/encoding/revision và mọi POST CSRF |
+| Run-WorkflowUnit.ps1 | hash, miền tiền, transitions, inject lỗi projection/ack, recovery/conflict |
+| Test-Initializer.py / Test-ConnectionDiagnostic.py | HTTP stub, không phải DB thật |
+| With-CouchEnvironment.ps1 -Script tests/Test-P2.py | seed thật 100 doc, chạy lại/references/total/index |
+| With-CouchEnvironment.ps1 -Script tests/Test-Mango.py | 5+5 query, _explain và bookmark thật |
+| With-CouchEnvironment.ps1 -Script tests/Test-Backup.py | primary chỉ đọc, restore DB riêng, hash/nội dung/index/idempotency/import lỗi |
+| Run-LiveIntegration.ps1 | build trước khi chạy; auth/CRUD/workflow/outbox/filters/CSRF qua IIS; tạo DB thử riêng |
+| Run-ConnectionFailures.ps1 | IIS với DB thiếu, URL không kết nối, mật khẩu thử sai; không dừng CouchDB thật |
+
+Wrapper ở cột script Python phải chạy với `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/With-CouchEnvironment.ps1 -Script <tệp>`. Test-LiveIntegration.py hiện gọi Test-Workflow.py, không lặp bộ CRUD anonymous cũ. Các assertion quan trọng được giữ trong successor có xác thực; bổ sung phân quyền/tham chiếu/quy trình/đồng bộ.
+
+DB `qlbanhang_test_*` và `qlbanhang_restore_*` được giữ sau test, không tự xóa. Test chỉ xóa tài liệu giả nó vừa tạo để kiểm tra CRUD; seed p2-* trên DB chính chỉ create-only. Export nằm dưới artifacts/backups, bị gitignore. Snapshot không chứa app_user/quyền/config/historical revisions; xem docs/BACKUP_RESTORE.md. GUI/ảnh, single-node với quyền admin và publish HTTPS là kiểm tra riêng, không nằm trong dòng PASS tự động.
+
+Kết quả hiện hành ở docs/TEST_RESULTS.md và CODEX_PROGRESS.md. Phần bên dưới giữ lịch sử P0/P1; các số lượng/cổng/giả định anonymous trong đó không thay hướng dẫn hiện tại. Test-WebSmoke.py đã cập nhật để kiểm tra các route công khai/redirect/CSRF của bản có auth.
+
+## Lịch sử tích hợp P0/P1 ngày 28/10/2026
+
+**Cập nhật P4:** `Run-LiveIntegration.ps1` hiện chạy successor có xác thực (`Test-Workflow.py`) trên DB `qlbanhang_test_<UUID>` riêng, không dùng anonymous CRUD trên DB chính. Cần cổng 52517 trống; DB thử được giữ để đối chiếu, mật khẩu test ngẫu nhiên chỉ ở bộ nhớ. Chạy `Run-SmokeTests.ps1` (49 assertion) và `Run-WorkflowUnit.ps1` (19 assertion). Các hướng dẫn anonymous/52516/44 assertion dưới đây là lịch sử P0/P1, không phải lệnh nghiệm thu cho phiên bản đã có đăng nhập. Test-WebSmoke.py cũ mô tả ca thiếu cấu hình trước khi có auth; kiểm thử mới kiểm tra redirect/403/CSRF theo chính sách mới.
+
+Đã chạy với CouchDB thật và IIS Express. Các ghi nhận thiếu cấu hình bên dưới là lịch sử trước khi thiết lập biến User.
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File tests/Run-LiveIntegration.ps1
+```
+
+Chạy bằng tài khoản Windows sở hữu bốn biến môi trường. Script lấy biến Process, nếu thiếu mới lấy User, chỉ nạp vào tiến trình; không sửa cấu hình lưu trên Windows. Cần build trước, Python, IIS Express và cổng 52516 còn trống. Không chạy đồng thời nhiều lượt trên cùng cổng. Script tự dừng riêng IIS do nó khởi tạo.
+
+Bộ test xác thực danh tính qua `_session`; chạy lại initializer và so sánh nội dung/revision bốn seed; tạo/đọc/sửa/xóa Customer, Product, Order, Delivery qua form MVC có token; đối chiếu CouchDB sau thao tác. Kiểm tra mã trùng, email/giá sai, tham chiếu thiếu, tổng tiền do server tính, revision sửa/xóa cũ và bảo toàn trường phụ. Đối chiếu số liệu Dashboard và ID Shipping; truy vấn Mango cơ bản, nâng cao và sort/bookmark từng bản ghi. Sau đó chạy web smoke trong hai tiến trình IIS riêng với DB không tồn tại và mật khẩu ngẫu nhiên sai.
+
+Chỉ tạo tài liệu giả có tiền tố `test-p01-<UUID>-`; xóa qua app theo thứ tự Delivery → Order → Product → Customer, hoặc dọn riêng các ID đã tạo nếu thất bại. Không xóa DB; CouchDB giữ tombstone của tài liệu thử theo cơ chế revision. Không thay đổi tài liệu có sẵn; initializer chỉ bảo đảm DB/index/seed tồn tại. Nếu dừng cưỡng bức, kiểm tra thủ công các ID của lượt thử còn sót. Bộ seed vẫn chỉ bốn tài liệu, chưa đủ P2. Kiểm tra giao diện dựa trên HTTP/HTML/form, chưa có ảnh hoặc đánh giá bố cục trực quan.
+
+## Đã tự động hóa
+
+Sau Restore NuGet, chạy trong Developer PowerShell của Visual Studio 2022:
+
+```powershell
+msbuild QuanLyBanHang.sln /t:Build /p:Configuration=Debug /p:MvcBuildViews=true /verbosity:minimal /nologo
+powershell -NoProfile -ExecutionPolicy Bypass -File tests/Run-SmokeTests.ps1
+python tests/Test-Initializer.py
+```
+
+`ExecutionPolicy Bypass` chỉ áp dụng cho tiến trình kiểm thử này, không thay đổi policy của máy.
+SmokeTests dùng HTTP handler giả lập, không đăng nhập CouchDB thật. Test initializer dùng HTTP server giả lập ở cổng loopback ngẫu nhiên, chỉ chạy script với các giá trị kiểm thử giả.
+
+Khi ứng dụng đang chạy IIS Express tại `http://localhost:52515` và **chưa cấu hình CouchDB**, chạy:
+
+```powershell
+python tests/Test-WebSmoke.py
+```
+
+Test web xác minh cảnh báo kết nối, View tạo đơn, validation bằng dữ liệu không hợp lệ và chặn POST thiếu token. Không dùng test này để kết luận CRUD thành công. HTTP 500 khi thiếu token là cách MVC5 mặc định trả lỗi anti-forgery; request bị chặn trước khi ghi dữ liệu.
+
+## Kiểm thử thủ công với CouchDB thật – chưa chạy trong phiên này
+
+1. Đổi mật khẩu cũ, dùng tài khoản mới; thiết lập bốn biến môi trường theo README. Không gửi mật khẩu qua chat/commit/log. Khởi động lại VS/IIS Express để nhận biến môi trường.
+2. Hoàn tất Setup single node trong Fauxton. Dùng database thử riêng (ví dụ `qlbanhang_demo_p01`) và tài khoản có quyền tạo database/index cho bước khởi tạo. Trong PowerShell đã có biến môi trường, chạy `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Initialize-CouchDb.ps1` hai lần. Xác minh có bốn document `demo-*`, index `type-id`; sửa tên sản phẩm mẫu rồi chạy lại để xác nhận không ghi đè. Không xóa database thật.
+3. Ứng dụng dùng tài khoản được cấp quyền database. Mở Home, Customer, Product, Order, Delivery, Shipping; kiểm tra số lượng từ dữ liệu mẫu và trang Order/Create. Các query dùng `_find`, selector type/status, sort type + _id, bookmark 200 bản ghi/trang; script tạo index type + _id. Chưa đo hiệu năng và chưa đủ bộ query P3.
+4. Tạo/sửa/xóa một sản phẩm và khách hàng giả; ghi nhận ID/revision. Kiểm tra giá/số lượng âm, trường bắt buộc, email sai, mã trùng và mã chứa `/`. Không xóa dữ liệu ngoài bộ demo của mình.
+5. Tạo đơn tham chiếu khách/sản phẩm thật trong database thử; để trống dòng sản phẩm thứ hai phải được bỏ qua. Kiểm tra số lượng > 0, giá >= 0, tổng tính trên server, ngày `yyyy-MM-dd`, trạng thái hợp lệ. Sửa và xóa đơn vừa tạo sau khi xử lý giao hàng mẫu liên quan.
+6. Tạo/sửa/xóa giao hàng giả tham chiếu đơn có thật. Mã đơn không tồn tại hoặc trỏ vào tài liệu khác loại phải bị từ chối. Quy tắc chuyển trạng thái và bảo toàn tham chiếu khi xóa sẽ hoàn thiện ở P4.
+7. Mở hai tab sửa cùng một tài liệu: lưu tab thứ nhất, lưu tab thứ hai phải báo xung đột; tab cũ không ghi đè. Kiểm tra xóa bằng revision cũ cũng bị từ chối. Thêm trường JSON phụ bằng Fauxton rồi sửa qua app: trường phụ phải còn.
+8. Chọn tên database thử chưa tồn tại rồi khởi động lại app: sáu trang phải hiện cảnh báo có kiểm soát. Dùng mật khẩu thử sai để kiểm tra 401, tài khoản thiếu quyền để kiểm tra 403. Khôi phục cấu hình đúng sau mỗi ca; không ghi mật khẩu vào bằng chứng.
+9. Tạm dừng CouchDB để kiểm tra lỗi kết nối; thử môi trường chậm để kiểm tra timeout 15 giây. Không dùng máy chủ đang phục vụ người khác cho thao tác này.
+10. Lưu kết quả thật, phiên bản môi trường và ảnh Fauxton đã che thông tin nhạy cảm vào nhật ký trước khi nghiệm thu P0/P1.
+
+Còn ngoài phạm vi P0/P1: login/role ứng dụng, quy tắc chuyển trạng thái đầy đủ, ràng buộc tham chiếu khi xóa, bộ seed 10/20/20/15, import/export, backup/restore, demo Fauxton và báo cáo rubric. Không mở triển khai dùng chung trước khi hoàn thiện phân quyền P4.
+
+## Thiết lập biến môi trường trên Windows, không ghi mật khẩu vào lệnh
+
+1. Nếu chưa thực hiện, đổi mật khẩu CouchDB cũ trong giao diện quản trị bằng thông tin bạn tự quản lý. Không dùng lại thông tin từng có trong Git. Chủ repo cần chuyển repo sang Private và phối hợp xử lý lịch sử trước khi chia sẻ.
+2. Nhấn **Win+R**, nhập `rundll32 sysdm.cpl,EditEnvironmentVariables`, chọn **User variables → New**. Không cần sửa Machine variables.
+3. Tạo bốn biến dưới đây. Nhập tài khoản/mật khẩu mới trực tiếp trong hộp thoại Windows; không gõ vào lệnh PowerShell, source, Web.config hoặc chat. Không chụp màn hình hộp thoại chứa thông tin xác thực.
+
+| Tên biến | Giá trị cần nhập riêng trên máy |
+|---|---|
+| COUCHDB_URL | `http://127.0.0.1:5984` |
+| COUCHDB_DATABASE | `qlbanhang` để kiểm tra DB mục tiêu; dùng `qlbanhang_demo_p01` nếu muốn tách bộ thử |
+| COUCHDB_USERNAME | Tên tài khoản CouchDB mới mà bạn đã xác minh đăng nhập được |
+| COUCHDB_PASSWORD | Mật khẩu mới của tài khoản đó; không đưa vào tài liệu |
+
+Biến môi trường là cấu hình riêng của máy, không phải kho lưu trữ được mã hóa. Giữ quyền truy cập tài khoản Windows phù hợp; không chạy `Get-ChildItem Env:COUCHDB*`, `echo` biến hay bật transcript/debug khi xử lý thông tin xác thực.
+
+4. Đóng VS/IIS Express và mở lại từ Windows để nhận biến mới. Nếu terminal/Codex đang chạy từ trước, khởi động lại ứng dụng mở terminal/Codex để tiến trình nhận biến mới. `.env.example` chỉ là mẫu; ứng dụng không tự nạp `.env`.
+5. Mở PowerShell mới trong repo, chạy chẩn đoán chỉ đọc:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Test-CouchDbConnection.ps1
+```
+
+Script chỉ in tên biến, cờ configured và HTTP status; không in giá trị hoặc raw error/response. Exit 0 = đọc được DB/index đúng; exit 1 = kiểm tra xác thực/cấu hình/index thất bại; exit 2 = chưa có đủ biến trong Process, không chạy kiểm tra có xác thực. HTTP 200 của health không chứng minh quyền tạo DB; HTTP 404 chưa xác thực không thay cho kiểm tra bằng tài khoản mới.
+
+6. Nếu `qlbanhang` chưa tồn tại, dùng tài khoản được cấp quyền tạo DB trong Fauxton hoặc chạy script sau trong phiên có đủ biến. Nếu tài khoản ứng dụng không có quyền tạo DB/index, bạn cần thực hiện bước này bằng tài khoản quản trị mới của mình. Không suy đoán thông tin đăng nhập và không tự mở quyền anonymous:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Initialize-CouchDb.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Initialize-CouchDb.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Test-CouchDbConnection.ps1
+```
+
+Script dùng tên DB trong biến môi trường, tạo index `type-id` và bốn tài liệu giả `demo-*`; không xóa DB hoặc tài liệu và không ghi đè ID có sẵn. Nếu dùng Fauxton để tạo DB thủ công, vẫn cần chạy script để tạo index và dữ liệu mẫu. Xác minh Documents/Indexes sau khi chạy; không coi kết quả HTTP giả lập là bằng chứng DB thật.
+
+7. Khôi phục tài khoản ứng dụng đã được cấp quyền database nếu đã dùng tài khoản quản trị cho bước khởi tạo; mở lại VS/IIS Express, chạy checklist CRUD thật ở trên. Shipping là trang đọc/lọc Delivery có status `shipping`, không có CRUD riêng: kiểm thử bằng cách tạo/sửa Delivery mẫu rồi đối chiếu trang Shipping.
+8. Khi cấu hình xong, chỉ báo **“đã thiết lập biến môi trường”**; không gửi giá trị tài khoản/mật khẩu. Nếu bị 401/403, kiểm tra đăng nhập và quyền trong Fauxton trước; không gửi raw response hay Authorization header.
+
+## Kết quả kiểm tra gần nhất (28/10/2026)
+
+- **PASS:** build gồm Razor; 44 assertion giả lập; script initializer trên HTTP stub; kiểm tra HTML/form qua IIS Express; health CouchDB thật.
+- **FAIL điều kiện sẵn sàng:** bốn biến môi trường chưa cấu hình ở cả ba scope; `/qlbanhang` trả HTTP 404 khi chưa xác thực.
+- **NOT RUN tích hợp thật:** tạo DB/index/seed, Mango, CRUD Customer/Product/Order/Delivery, đối chiếu Shipping, quyền và conflict thật. Không có thông tin xác thực mới, không suy đoán hoặc thử lại mật khẩu cũ.
+
+Có thể kiểm tra lại chẩn đoán mà không ghi DB bằng lệnh ở trên. Kiểm thử chẩn đoán với HTTP stub: `python tests/Test-ConnectionDiagnostic.py`; đây là giả lập, không thay thế kiểm tra có xác thực với CouchDB thật. Chưa bắt đầu P2.
+
+## Audit P6 (chỉ đọc, không chạy authenticated suite với credential đã lộ)
+
+- `python scripts/Inspect-ReviewInputs.py`: cần đúng hai DOCX cục bộ trong docs/review_input; không sửa gốc, chỉ trích xuất đã che vào artifacts/p6-input. Có thể nạp biến môi trường bằng With-CouchEnvironment để che khớp giá trị; không dùng chúng để xác thực.
+- `python scripts/Compare-ReviewJson.py`: so JSON trong bộ đầu vào, chỉ báo ID/tên field/vị trí.
+- `python scripts/P6-SeedConsistency.py`: audit nguồn seed so mapping P4; hiện **FAIL exit1**, 5 cặp lệch và 10 assigned không shipperId. Không sửa DB hoặc bỏ assertion để PASS.
+- `python tests/Test-P6Review.py`: sau hai bước trích xuất/so sánh, kiểm tra hash gốc/ignore, bốn ID mâu thuẫn, redaction và giữ kết quả FAIL của seed audit. PASS của regression nghĩa là phát hiện đúng, không nghĩa seed đã hợp lệ. Test phụ thuộc đầu vào Word riêng, không chạy mặc định ở clone không có docs/review_input.
+- `python scripts/P6-ReadOnlyProbe.py`: chỉ anonymous GET, không Authorization/Cookie hay ghi DB. Không thay thế kiểm tra _security hoặc tích hợp với credential mới an toàn.
+
+Ma trận thật: docs/p6/TECHNICAL_AUDIT.md. Không tự khởi chạy Run-AllTests có xác thực trước khi chủ máy thay/thu hồi credential đã lộ và xác minh quyền.

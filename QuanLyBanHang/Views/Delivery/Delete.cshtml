@@ -52,6 +52,7 @@
     FormMethod.Post
 ))
 {
+    @Html.AntiForgeryToken()
     <input type="hidden"
            name="id"
            value="@Model._id" />

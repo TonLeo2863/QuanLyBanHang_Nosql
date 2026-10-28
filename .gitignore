@@ -361,3 +361,11 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+# Cau hinh CouchDB rieng
+.env
+.env.*
+!.env.example
+*.local.ps1
+*.local.config
+# Original Word drafts and extracted review material stay local.
+/docs/review_input/

@@ -1,5 +1,5 @@
-﻿using Newtonsoft.Json;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using QuanLyBanHang.Models;
@@ -9,227 +9,56 @@ namespace QuanLyBanHang.Controllers
 {
     public class DeliveryController : Controller
     {
-        private readonly CouchDbService couchDbService;
-
-        public DeliveryController()
-        {
-            couchDbService =
-                new CouchDbService();
-        }
-
-        // =========================
-        // DANH SACH GIAO HANG
-        // =========================
-
+        private readonly CouchDbService couchDbService = new CouchDbService();
         public async Task<ActionResult> Index()
         {
-            string data =
-                await couchDbService.GetAllDocuments();
-
-            dynamic result =
-                JsonConvert.DeserializeObject(data);
-
-            List<Delivery> deliveries =
-                new List<Delivery>();
-
-            foreach (dynamic row in result.rows)
-            {
-                if (row.doc != null)
-                {
-                    string type =
-                        row.doc.type;
-
-                    if (type == "delivery")
-                    {
-                        Delivery delivery =
-                            JsonConvert.DeserializeObject<Delivery>(
-                                row.doc.ToString()
-                            );
-
-                        deliveries.Add(delivery);
-                    }
-                }
-            }
-
-            return View(deliveries);
+            var documents = new List<Delivery>();
+            try { documents = await QueryService.Load<Delivery>(this, couchDbService, "delivery"); }
+            catch (CouchDbException ex) { ViewBag.Error = ex.Message; }
+            return View(documents);
         }
-
-        // =========================
-        // THEM GIAO HANG - GET
-        // =========================
-
         [HttpGet]
-        public ActionResult Create()
-        {
-            return View();
-        }
-
-        // =========================
-        // THEM GIAO HANG - POST
-        // =========================
-
-        [HttpPost]
-        public async Task<ActionResult> Create(
-            Delivery delivery)
-        {
-            if (string.IsNullOrWhiteSpace(delivery._id))
-            {
-                ViewBag.Error =
-                    "Mã giao hàng không được để trống.";
-
-                return View(delivery);
-            }
-
-            if (string.IsNullOrWhiteSpace(delivery.orderId))
-            {
-                ViewBag.Error =
-                    "Mã đơn hàng không được để trống.";
-
-                return View(delivery);
-            }
-
-            delivery.type =
-                "delivery";
-
-            string result =
-                await couchDbService.CreateDocument(
-                    delivery._id,
-                    delivery
-                );
-
-            if (result.Contains("\"ok\":true"))
-            {
-                return RedirectToAction("Index");
-            }
-
-            ViewBag.Error =
-                "Không thể thêm giao hàng: "
-                + result;
-
-            return View(delivery);
-        }
-
-        // =========================
-        // SUA - GET
-        // =========================
-
+        [AppAuthorize(Roles="Administrator,OrderManager")]
+        public ActionResult Create() { return View(new Delivery()); }
         [HttpGet]
-        public async Task<ActionResult> Edit(
-            string id)
-        {
-            if (string.IsNullOrWhiteSpace(id))
-            {
-                return RedirectToAction("Index");
-            }
-
-            string data =
-                await couchDbService.GetDocument(id);
-
-            Delivery delivery =
-                JsonConvert.DeserializeObject<Delivery>(
-                    data
-                );
-
-            if (delivery == null)
-            {
-                return RedirectToAction("Index");
-            }
-
-            return View(delivery);
-        }
-
-        // =========================
-        // SUA - POST
-        // =========================
-
-        [HttpPost]
-        public async Task<ActionResult> Edit(
-            Delivery delivery)
-        {
-            if (string.IsNullOrWhiteSpace(delivery._id))
-            {
-                ViewBag.Error =
-                    "Mã giao hàng không được để trống.";
-
-                return View(delivery);
-            }
-
-            if (string.IsNullOrWhiteSpace(delivery.orderId))
-            {
-                ViewBag.Error =
-                    "Mã đơn hàng không được để trống.";
-
-                return View(delivery);
-            }
-
-            delivery.type =
-                "delivery";
-
-            string result =
-                await couchDbService.UpdateDocument(
-                    delivery._id,
-                    delivery
-                );
-
-            if (result.Contains("\"ok\":true"))
-            {
-                return RedirectToAction("Index");
-            }
-
-            ViewBag.Error =
-                "Không thể cập nhật giao hàng: "
-                + result;
-
-            return View(delivery);
-        }
-
-        // =========================
-        // XOA - GET
-        // =========================
-
+        public async Task<ActionResult> Edit(string id) { return await Load(id, "Edit"); }
         [HttpGet]
-        public async Task<ActionResult> Delete(
-            string id)
+        [AppAuthorize(Roles="Administrator,OrderManager")]
+        public async Task<ActionResult> Delete(string id) { return await Load(id, "Delete"); }
+        private async Task<ActionResult> Load(string id, string view)
         {
-            if (string.IsNullOrWhiteSpace(id))
-            {
-                return RedirectToAction("Index");
-            }
-
-            string data =
-                await couchDbService.GetDocument(id);
-
-            Delivery delivery =
-                JsonConvert.DeserializeObject<Delivery>(
-                    data
-                );
-
-            if (delivery == null)
-            {
-                return RedirectToAction("Index");
-            }
-
-            return View(delivery);
+            try { var doc=await couchDbService.ReadDocument<Delivery>(id, "delivery");
+                var actor=AppSecurity.Current(HttpContext);
+                if (actor.role=="Shipper" && doc.shipperId!=actor.username) return new HttpStatusCodeResult(403);
+                return View(view,doc); }
+            catch (CouchDbException ex) { TempData["Error"] = ex.Message; return RedirectToAction("Index"); }
         }
-
-        // =========================
-        // XOA - POST
-        // =========================
-
-        [HttpPost]
-        public async Task<ActionResult> DeleteConfirm(
-            string id,
-            string rev)
+        [HttpPost, ValidateAntiForgeryToken]
+        [AppAuthorize(Roles="Administrator,OrderManager")]
+        public async Task<ActionResult> Create(Delivery delivery) { return await Save(delivery, false); }
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<ActionResult> Edit(Delivery delivery) { return await Save(delivery, true); }
+        private async Task<ActionResult> Save(Delivery delivery, bool editing)
         {
-            if (!string.IsNullOrWhiteSpace(id) &&
-                !string.IsNullOrWhiteSpace(rev))
+            var view = editing ? "Edit" : "Create";
+            if (!ModelState.IsValid) return View(view, delivery);
+            try
             {
-                await couchDbService.DeleteDocument(
-                    id,
-                    rev
-                );
+                await new WorkflowService().SaveDelivery(delivery, editing, AppSecurity.Current(HttpContext));
+                return RedirectToAction("Index");
             }
-
+            catch (CouchDbException ex) { ModelState.AddModelError("", ex.Message); return View(view, delivery); }
+        }
+        [HttpPost, ValidateAntiForgeryToken]
+        [AppAuthorize(Roles="Administrator,OrderManager")]
+        public async Task<ActionResult> DeleteConfirm(string id, string rev)
+        {
+            try
+            {
+                await couchDbService.ReadDocument<Delivery>(id, "delivery");
+                await new WorkflowService().DeleteDelivery(id, rev, User.Identity.Name);
+            }
+            catch (CouchDbException ex) { TempData["Error"] = ex.Message; }
             return RedirectToAction("Index");
         }
     }

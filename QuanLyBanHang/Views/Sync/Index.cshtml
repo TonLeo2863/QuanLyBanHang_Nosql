@@ -1,0 +1,12 @@
+﻿@model List<Newtonsoft.Json.Linq.JObject>
+@{ ViewBag.Title="Đồng bộ giao hàng"; }
+<h2>Đơn đang chờ đồng bộ</h2>
+<p>Order là nguồn trạng thái chính. Khi phiếu giao chưa được cập nhật, đơn bị khóa chỉnh sửa; thử lại không ghi đè revision bên ngoài.</p>
+@foreach(var order in Model) {
+    <p>Mã đơn: @order["_id"] — trạng thái: @order["status"]</p>
+    using(Html.BeginForm("Retry","Sync",FormMethod.Post)) {
+        @Html.AntiForgeryToken() @Html.Hidden("id",(string)order["_id"])
+        <button type="submit" class="btn btn-warning">Thử đồng bộ lại</button>
+    }
+}
+@if(ViewBag.NextBookmark!=null) { <a href="@Url.Action("Index",new { bookmark=(string)ViewBag.NextBookmark })">Trang tiếp theo</a> }

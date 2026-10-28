@@ -92,6 +92,14 @@
 
     <main class="container body-content">
 
+        @if (ViewBag.Error != null || TempData["Error"] != null)
+        {
+            <div class="alert alert-danger" role="alert">@(ViewBag.Error ?? TempData["Error"])</div>
+        }
+        @if (Request.IsAuthenticated) {
+            <p>@User.Identity.Name | @Html.ActionLink("Người dùng", "Users", "Account") | @Html.ActionLink("Đồng bộ", "Index", "Sync")</p>
+            using (Html.BeginForm("Logout", "Account", FormMethod.Post)) { @Html.AntiForgeryToken()<button type="submit" class="btn btn-link">Đăng xuất</button> }
+        }
         @RenderBody()
 
         <hr />
