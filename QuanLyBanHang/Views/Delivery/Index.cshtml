@@ -1,0 +1,121 @@
+﻿@model List<QuanLyBanHang.Models.Delivery>
+
+@{
+    ViewBag.Title = "Danh sách giao hàng";
+}
+
+<h2>Danh sách giao hàng</h2>
+
+<p>
+    @Html.ActionLink(
+        "Thêm giao hàng",
+        "Create",
+        "Delivery",
+        null,
+        new
+        {
+            @class = "btn btn-success"
+        }
+    )
+</p>
+
+<table class="table table-bordered table-striped">
+
+    <thead>
+        <tr>
+            <th>Mã giao hàng</th>
+            <th>Mã đơn hàng</th>
+            <th>Mã shipper</th>
+            <th>Tên shipper</th>
+            <th>Số điện thoại</th>
+            <th>Trạng thái</th>
+            <th>Ngày lấy hàng</th>
+            <th>Ngày dự kiến</th>
+            <th>Địa chỉ</th>
+            <th>Thao tác</th>
+        </tr>
+    </thead>
+
+    <tbody>
+
+        @foreach (
+            QuanLyBanHang.Models.Delivery delivery
+            in Model
+        )
+        {
+            <tr>
+
+                <td>
+                    @delivery._id
+                </td>
+
+                <td>
+                    @delivery.orderId
+                </td>
+
+                <td>
+                    @delivery.shipperId
+                </td>
+
+                <td>
+                    @delivery.shipperName
+                </td>
+
+                <td>
+                    @delivery.shipperPhone
+                </td>
+
+                <td>
+                    @delivery.status
+                </td>
+
+                <td>
+                    @delivery.pickupDate
+                </td>
+
+                <td>
+                    @delivery.expectedDate
+                </td>
+
+                <td>
+                    @delivery.address
+                </td>
+
+                <td>
+
+                    @Html.ActionLink(
+                        "Sửa",
+                        "Edit",
+                        "Delivery",
+                        new
+                        {
+                            id = delivery._id
+                        },
+                        new
+                        {
+                            @class = "btn btn-warning btn-sm"
+                        }
+                    )
+
+                    @Html.ActionLink(
+                        "Xóa",
+                        "Delete",
+                        "Delivery",
+                        new
+                        {
+                            id = delivery._id
+                        },
+                        new
+                        {
+                            @class = "btn btn-danger btn-sm"
+                        }
+                    )
+
+                </td>
+
+            </tr>
+        }
+
+    </tbody>
+
+</table>

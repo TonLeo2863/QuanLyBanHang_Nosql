@@ -1,0 +1,78 @@
+﻿@model QuanLyBanHang.Models.Delivery
+
+@{
+    ViewBag.Title = "Xóa giao hàng";
+}
+
+<h2>Xóa giao hàng</h2>
+
+<div class="alert alert-warning">
+    Bạn có chắc muốn xóa giao hàng
+    <strong>@Model._id</strong>
+    không?
+</div>
+
+<table class="table table-bordered">
+
+    <tr>
+        <th>Mã giao hàng</th>
+        <td>@Model._id</td>
+    </tr>
+
+    <tr>
+        <th>Mã đơn hàng</th>
+        <td>@Model.orderId</td>
+    </tr>
+
+    <tr>
+        <th>Shipper</th>
+        <td>@Model.shipperName</td>
+    </tr>
+
+    <tr>
+        <th>Số điện thoại</th>
+        <td>@Model.shipperPhone</td>
+    </tr>
+
+    <tr>
+        <th>Trạng thái</th>
+        <td>@Model.status</td>
+    </tr>
+
+    <tr>
+        <th>Địa chỉ</th>
+        <td>@Model.address</td>
+    </tr>
+
+</table>
+
+@using (Html.BeginForm(
+    "DeleteConfirm",
+    "Delivery",
+    FormMethod.Post
+))
+{
+    <input type="hidden"
+           name="id"
+           value="@Model._id" />
+
+    <input type="hidden"
+           name="rev"
+           value="@Model._rev" />
+
+    <button type="submit"
+            class="btn btn-danger">
+        Xác nhận xóa
+    </button>
+
+    @Html.ActionLink(
+        "Hủy",
+        "Index",
+        "Delivery",
+        null,
+        new
+        {
+            @class = "btn btn-secondary"
+        }
+    )
+}

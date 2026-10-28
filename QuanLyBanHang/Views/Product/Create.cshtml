@@ -1,0 +1,123 @@
+﻿@model QuanLyBanHang.Models.Product
+
+@{
+    ViewBag.Title = "Thêm sản phẩm";
+}
+
+<h2>Thêm sản phẩm</h2>
+
+@if (ViewBag.Error != null)
+{
+    <div class="alert alert-danger">
+        @ViewBag.Error
+    </div>
+}
+
+@using (Html.BeginForm())
+{
+    <div class="form-group">
+
+        <label>Mã sản phẩm</label>
+
+        @Html.TextBoxFor(
+            m => m._id,
+            new
+            {
+                @class = "form-control"
+            }
+        )
+
+    </div>
+
+    <div class="form-group">
+
+        <label>Tên sản phẩm</label>
+
+        @Html.TextBoxFor(
+            m => m.name,
+            new
+            {
+                @class = "form-control"
+            }
+        )
+
+    </div>
+
+    <div class="form-group">
+
+        <label>Loại sản phẩm</label>
+
+        @Html.TextBoxFor(
+            m => m.category,
+            new
+            {
+                @class = "form-control"
+            }
+        )
+
+    </div>
+
+    <div class="form-group">
+
+        <label>Đơn giá</label>
+
+        @Html.TextBoxFor(
+            m => m.price,
+            new
+            {
+                @class = "form-control",
+                type = "number"
+            }
+        )
+
+    </div>
+
+    <div class="form-group">
+
+        <label>Số lượng</label>
+
+        @Html.TextBoxFor(
+            m => m.quantity,
+            new
+            {
+                @class = "form-control",
+                type = "number"
+            }
+        )
+
+    </div>
+
+    <div class="form-group">
+
+        <label>Trạng thái</label>
+
+        @Html.TextBoxFor(
+            m => m.status,
+            new
+            {
+                @class = "form-control"
+            }
+        )
+
+    </div>
+
+    <br />
+
+    <button type="submit"
+            class="btn btn-success">
+
+        Thêm
+
+    </button>
+
+    @Html.ActionLink(
+        "Quay lại",
+        "Index",
+        "Product",
+        null,
+        new
+        {
+            @class = "btn btn-secondary"
+        }
+    )
+}

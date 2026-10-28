@@ -1,0 +1,123 @@
+﻿@model List<QuanLyBanHang.Models.Product>
+
+@{
+    ViewBag.Title = "Danh sách sản phẩm";
+}
+
+<h2>Danh sách sản phẩm</h2>
+
+@if (ViewBag.Error != null)
+{
+    <div class="alert alert-danger">
+        @ViewBag.Error
+    </div>
+}
+
+<p>
+    @Html.ActionLink(
+        "Thêm sản phẩm",
+        "Create",
+        "Product",
+        null,
+        new
+        {
+            @class = "btn btn-success"
+        }
+    )
+</p>
+
+<table class="table table-bordered table-striped">
+
+    <thead>
+        <tr>
+
+            <th>Mã sản phẩm</th>
+
+            <th>Tên sản phẩm</th>
+
+            <th>Loại</th>
+
+            <th>Đơn giá</th>
+
+            <th>Số lượng</th>
+
+            <th>Trạng thái</th>
+
+            <th>Chức năng</th>
+
+        </tr>
+    </thead>
+
+    <tbody>
+
+        @foreach (
+            QuanLyBanHang.Models.Product product
+            in Model
+        )
+        {
+            <tr>
+
+                <td>
+                    @product._id
+                </td>
+
+                <td>
+                    @product.name
+                </td>
+
+                <td>
+                    @product.category
+                </td>
+
+                <td>
+                    @product.price.ToString("N0") VNĐ
+                </td>
+
+                <td>
+                    @product.quantity
+                </td>
+
+                <td>
+                    @product.status
+                </td>
+
+                <td>
+
+                    @Html.ActionLink(
+                        "Sửa",
+                        "Edit",
+                        "Product",
+                        new
+                        {
+                            id = product._id
+                        },
+                        new
+                        {
+                            @class =
+                                "btn btn-warning btn-sm"
+                        }
+                    )
+
+                    @Html.ActionLink(
+                        "Xóa",
+                        "Delete",
+                        "Product",
+                        new
+                        {
+                            id = product._id
+                        },
+                        new
+                        {
+                            @class =
+                                "btn btn-danger btn-sm"
+                        }
+                    )
+
+                </td>
+
+            </tr>
+        }
+
+    </tbody>
+
+</table>

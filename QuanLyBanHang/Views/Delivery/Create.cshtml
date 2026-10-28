@@ -1,0 +1,158 @@
+﻿@model QuanLyBanHang.Models.Delivery
+
+@{
+    ViewBag.Title = "Thêm giao hàng";
+}
+
+<h2>Thêm giao hàng</h2>
+
+@if (ViewBag.Error != null)
+{
+    <div class="alert alert-danger">
+        @ViewBag.Error
+    </div>
+}
+
+@using (Html.BeginForm())
+{
+    <div class="form-group">
+        <label>Mã giao hàng</label>
+
+        @Html.TextBoxFor(
+            m => m._id,
+            new
+            {
+                @class = "form-control",
+                placeholder = "VD: GH006"
+            }
+        )
+    </div>
+
+    <div class="form-group">
+        <label>Mã đơn hàng</label>
+
+        @Html.TextBoxFor(
+            m => m.orderId,
+            new
+            {
+                @class = "form-control",
+                placeholder = "VD: DH006"
+            }
+        )
+    </div>
+
+    <div class="form-group">
+        <label>Mã shipper</label>
+
+        @Html.TextBoxFor(
+            m => m.shipperId,
+            new
+            {
+                @class = "form-control",
+                placeholder = "VD: SHIP001"
+            }
+        )
+    </div>
+
+    <div class="form-group">
+        <label>Tên shipper</label>
+
+        @Html.TextBoxFor(
+            m => m.shipperName,
+            new
+            {
+                @class = "form-control"
+            }
+        )
+    </div>
+
+    <div class="form-group">
+        <label>Số điện thoại</label>
+
+        @Html.TextBoxFor(
+            m => m.shipperPhone,
+            new
+            {
+                @class = "form-control"
+            }
+        )
+    </div>
+
+    <div class="form-group">
+        <label>Trạng thái</label>
+
+        @Html.DropDownListFor(
+            m => m.status,
+            new SelectList(
+                new[]
+                {
+                    "pending",
+                    "shipping",
+                    "delivered",
+                    "cancelled"
+                }
+            ),
+            "-- Chọn trạng thái --",
+            new
+            {
+                @class = "form-control"
+            }
+        )
+    </div>
+
+    <div class="form-group">
+        <label>Ngày lấy hàng</label>
+
+        @Html.TextBoxFor(
+            m => m.pickupDate,
+            new
+            {
+                @class = "form-control",
+                placeholder = "VD: 2026-10-07"
+            }
+        )
+    </div>
+
+    <div class="form-group">
+        <label>Ngày dự kiến giao</label>
+
+        @Html.TextBoxFor(
+            m => m.expectedDate,
+            new
+            {
+                @class = "form-control",
+                placeholder = "VD: 2026-10-09"
+            }
+        )
+    </div>
+
+    <div class="form-group">
+        <label>Địa chỉ giao hàng</label>
+
+        @Html.TextBoxFor(
+            m => m.address,
+            new
+            {
+                @class = "form-control"
+            }
+        )
+    </div>
+
+    <br />
+
+    <button type="submit"
+            class="btn btn-success">
+        Thêm
+    </button>
+
+    @Html.ActionLink(
+        "Quay lại",
+        "Index",
+        "Delivery",
+        null,
+        new
+        {
+            @class = "btn btn-secondary"
+        }
+    )
+}

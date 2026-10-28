@@ -1,0 +1,180 @@
+﻿@model QuanLyBanHang.Models.Order
+
+@{
+    ViewBag.Title = "Sửa đơn hàng";
+}
+
+<h2>Sửa đơn hàng</h2>
+
+@if (ViewBag.Error != null)
+{
+    <div class="alert alert-danger">
+        @ViewBag.Error
+    </div>
+}
+
+@using (Html.BeginForm())
+{
+    @Html.HiddenFor(m => m._id)
+
+    @Html.HiddenFor(m => m._rev)
+
+    <div class="form-group">
+        <label>Mã đơn hàng</label>
+
+        @Html.TextBoxFor(
+            m => m._id,
+            new
+            {
+                @class = "form-control",
+                @readonly = "readonly"
+            }
+        )
+    </div>
+
+    <div class="form-group">
+        <label>Mã khách hàng</label>
+
+        @Html.TextBoxFor(
+            m => m.customerId,
+            new
+            {
+                @class = "form-control"
+            }
+        )
+    </div>
+
+    <div class="form-group">
+        <label>Ngày đặt hàng</label>
+
+        @Html.TextBoxFor(
+            m => m.orderDate,
+            new
+            {
+                @class = "form-control"
+            }
+        )
+    </div>
+
+    <div class="form-group">
+        <label>Trạng thái</label>
+
+        @Html.DropDownListFor(
+            m => m.status,
+            new SelectList(
+                new[]
+                {
+                    "processing",
+                    "shipping",
+                    "delivered",
+                    "cancelled"
+                },
+                Model.status
+            ),
+            new
+            {
+                @class = "form-control"
+            }
+        )
+    </div>
+
+    <hr />
+
+    <h4>Sản phẩm</h4>
+
+    @if (Model.items != null)
+    {
+        for (int i = 0;
+             i < Model.items.Count;
+             i++)
+        {
+            <div class="form-group">
+                <label>Mã sản phẩm</label>
+
+                @Html.TextBoxFor(
+                    m => m.items[i].productId,
+                    new
+                    {
+                        @class = "form-control"
+                    }
+                )
+            </div>
+
+            <div class="form-group">
+                <label>Số lượng</label>
+
+                @Html.TextBoxFor(
+                    m => m.items[i].quantity,
+                    new
+                    {
+                        @class = "form-control"
+                    }
+                )
+            </div>
+
+            <div class="form-group">
+                <label>Đơn giá</label>
+
+                @Html.TextBoxFor(
+                    m => m.items[i].price,
+                    new
+                    {
+                        @class = "form-control"
+                    }
+                )
+            </div>
+
+            <hr />
+        }
+    }
+
+    <div class="form-group">
+        <label>Phương thức thanh toán</label>
+
+        @Html.DropDownListFor(
+            m => m.paymentMethod,
+            new SelectList(
+                new[]
+                {
+                    "COD",
+                    "Banking"
+                },
+                Model.paymentMethod
+            ),
+            new
+            {
+                @class = "form-control"
+            }
+        )
+    </div>
+
+    <div class="form-group">
+        <label>Địa chỉ</label>
+
+        @Html.TextBoxFor(
+            m => m.address,
+            new
+            {
+                @class = "form-control"
+            }
+        )
+    </div>
+
+    <br />
+
+    <button type="submit"
+            class="btn btn-primary">
+        Lưu thay đổi
+    </button>
+
+    @Html.ActionLink(
+        "Quay lại",
+        "Index",
+        "Order",
+        null,
+        new
+        {
+            @class = "btn btn-secondary"
+        }
+    )
+}

@@ -1,0 +1,190 @@
+﻿@model QuanLyBanHang.Models.Order
+
+@{
+    ViewBag.Title = "Thêm đơn hàng";
+}
+
+<h2>Thêm đơn hàng</h2>
+
+@if (ViewBag.Error != null)
+{
+    <div class="alert alert-danger">
+        @ViewBag.Error
+    </div>
+}
+
+@using (Html.BeginForm())
+{
+    <div class="form-group">
+        <label>Mã đơn hàng</label>
+
+        @Html.TextBoxFor(
+            m => m._id,
+            new
+            {
+                @class = "form-control",
+                placeholder = "VD: DH006"
+            }
+        )
+    </div>
+
+    <div class="form-group">
+        <label>Mã khách hàng</label>
+
+        @Html.TextBoxFor(
+            m => m.customerId,
+            new
+            {
+                @class = "form-control",
+                placeholder = "VD: KH001"
+            }
+        )
+    </div>
+
+    <div class="form-group">
+        <label>Ngày đặt hàng</label>
+
+        @Html.TextBoxFor(
+            m => m.date,
+            new
+            {
+                @class = "form-control",
+                placeholder = "VD: 2026-10-07"
+            }
+        )
+    </div>
+
+    <div class="form-group">
+        <label>Trạng thái</label>
+
+        @Html.DropDownListFor(
+            m => m.status,
+            new SelectList(
+                new[]
+                {
+                    "processing",
+                    "shipping",
+                    "delivered",
+                    "cancelled"
+                }
+            ),
+            "-- Chọn trạng thái --",
+            new
+            {
+                @class = "form-control"
+            }
+        )
+    </div>
+
+    <hr />
+
+    <h4>Sản phẩm trong đơn hàng</h4>
+
+    <div class="form-group">
+        <label>Mã sản phẩm 1</label>
+
+        <input type="text"
+               name="items[0].productId"
+               class="form-control"
+               placeholder="VD: SP001" />
+    </div>
+
+    <div class="form-group">
+        <label>Số lượng</label>
+
+        <input type="number"
+               name="items[0].quantity"
+               class="form-control"
+               value="1" />
+    </div>
+
+    <div class="form-group">
+        <label>Đơn giá</label>
+
+        <input type="number"
+               name="items[0].price"
+               class="form-control"
+               value="0" />
+    </div>
+
+    <hr />
+
+    <div class="form-group">
+        <label>Mã sản phẩm 2</label>
+
+        <input type="text"
+               name="items[1].productId"
+               class="form-control"
+               placeholder="VD: SP002" />
+    </div>
+
+    <div class="form-group">
+        <label>Số lượng</label>
+
+        <input type="number"
+               name="items[1].quantity"
+               class="form-control"
+               value="0" />
+    </div>
+
+    <div class="form-group">
+        <label>Đơn giá</label>
+
+        <input type="number"
+               name="items[1].price"
+               class="form-control"
+               value="0" />
+    </div>
+
+    <hr />
+
+    <div class="form-group">
+        <label>Phương thức thanh toán</label>
+
+        @Html.DropDownListFor(
+            m => m.paymentMethod,
+            new SelectList(
+                new[]
+                {
+                    "COD",
+                    "Banking"
+                }
+            ),
+            "-- Chọn phương thức --",
+            new
+            {
+                @class = "form-control"
+            }
+        )
+    </div>
+
+    <div class="form-group">
+        <label>Địa chỉ giao hàng</label>
+
+        @Html.TextBoxFor(
+            m => m.address,
+            new
+            {
+                @class = "form-control"
+            }
+        )
+    </div>
+
+    <br />
+
+    <button type="submit"
+            class="btn btn-success">
+        Thêm đơn hàng
+    </button>
+
+    @Html.ActionLink(
+        "Quay lại",
+        "Index",
+        "Order",
+        null,
+        new
+        {
+            @class = "btn btn-secondary"
+        }
+    )
+}

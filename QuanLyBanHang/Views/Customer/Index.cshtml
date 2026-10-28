@@ -1,0 +1,77 @@
+﻿@model List<QuanLyBanHang.Models.Customer>
+
+@{
+    ViewBag.Title = "Khách hàng";
+}
+
+<h2>Danh sách khách hàng</h2>
+
+<p>
+    @Html.ActionLink(
+        "Thêm khách hàng",
+        "Create",
+        "Customer",
+        null,
+        new { @class = "btn btn-success" }
+    )
+</p>
+
+<table class="table table-bordered table-striped">
+
+    <tr>
+        <th>Mã khách hàng</th>
+        <th>Họ tên</th>
+        <th>Số điện thoại</th>
+        <th>Email</th>
+        <th>Địa chỉ</th>
+        <th>Chức năng</th>
+    </tr>
+    @foreach (QuanLyBanHang.Models.Customer customer
+        in Model)
+    {
+        <tr>
+
+            <td>
+                @customer._id
+            </td>
+
+            <td>
+                @customer.name
+            </td>
+
+            <td>
+                @customer.phone
+            </td>
+
+            <td>
+                @customer.email
+            </td>
+
+            <td>
+                @customer.address
+            </td>
+
+            <td>
+
+                @Html.ActionLink(
+                    "Sửa",
+                    "Edit",
+                    "Customer",
+                    new { id = customer._id },
+                    new { @class = "btn btn-warning btn-sm" }
+                )
+
+                @Html.ActionLink(
+                    "Xóa",
+                    "Delete",
+                    "Customer",
+                    new { id = customer._id },
+                    new { @class = "btn btn-danger btn-sm" }
+                )
+
+            </td>
+
+        </tr>
+    }
+
+</table>

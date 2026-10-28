@@ -1,0 +1,95 @@
+﻿@model QuanLyBanHang.Models.Customer
+
+@{
+    ViewBag.Title = "Thêm khách hàng";
+}
+
+<h2>Thêm khách hàng</h2>
+
+@if (ViewBag.Error != null)
+{
+    <div class="alert alert-danger">
+        @ViewBag.Error
+    </div>
+}
+
+@using (Html.BeginForm())
+{
+    <div class="form-group">
+        <label>Mã khách hàng</label>
+
+        @Html.TextBoxFor(
+            m => m._id,
+            new
+            {
+                @class = "form-control"
+            }
+        )
+    </div>
+
+    <div class="form-group">
+        <label>Họ tên</label>
+
+        @Html.TextBoxFor(
+            m => m.name,
+            new
+            {
+                @class = "form-control"
+            }
+        )
+    </div>
+
+    <div class="form-group">
+        <label>Số điện thoại</label>
+
+        @Html.TextBoxFor(
+            m => m.phone,
+            new
+            {
+                @class = "form-control"
+            }
+        )
+    </div>
+
+    <div class="form-group">
+        <label>Email</label>
+
+        @Html.TextBoxFor(
+            m => m.email,
+            new
+            {
+                @class = "form-control"
+            }
+        )
+    </div>
+
+    <div class="form-group">
+        <label>Địa chỉ</label>
+
+        @Html.TextBoxFor(
+            m => m.address,
+            new
+            {
+                @class = "form-control"
+            }
+        )
+    </div>
+
+    <br />
+
+    <button type="submit"
+            class="btn btn-success">
+        Thêm
+    </button>
+
+    @Html.ActionLink(
+        "Quay lại",
+        "Index",
+        "Customer",
+        null,
+        new
+        {
+            @class = "btn btn-secondary"
+        }
+    )
+}

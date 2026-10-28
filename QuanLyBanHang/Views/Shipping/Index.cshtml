@@ -1,0 +1,103 @@
+﻿
+@model List<QuanLyBanHang.Models.Delivery>
+
+@{
+    ViewBag.Title = "Đơn đang được giao";
+}
+
+<style>
+    .shipping-header {
+        background: linear-gradient(120deg, #2563eb, #4f46e5);
+        color: white;
+        padding: 28px;
+        border-radius: 14px;
+        margin-bottom: 25px;
+    }
+
+    .shipping-table {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    .shipping-status {
+        color: #047857;
+        background: #d1fae5;
+        padding: 6px 10px;
+        border-radius: 15px;
+        font-weight: bold;
+    }
+</style>
+
+<div class="container-fluid">
+
+    <div class="shipping-header">
+        <h2>ĐƠN ĐANG ĐƯỢC GIAO</h2>
+
+        <p>
+            Theo dõi thông tin các đơn hàng đang vận chuyển.
+        </p>
+    </div>
+
+    <div class="panel panel-default">
+        <div class="panel-body">
+
+            <h4>
+                Tổng số đơn đang giao:
+                <strong>@Model.Count</strong>
+            </h4>
+
+        </div>
+    </div>
+
+    @if (Model.Count == 0)
+    {
+        <div class="alert alert-info">
+            Hiện chưa có đơn hàng nào đang được giao.
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive shipping-table">
+
+            <table class="table table-bordered table-striped">
+
+                <thead>
+                    <tr>
+                        <th>Mã giao hàng</th>
+                        <th>Mã đơn hàng</th>
+                        <th>Người giao hàng</th>
+                        <th>Số điện thoại</th>
+                        <th>Ngày lấy hàng</th>
+                        <th>Dự kiến giao</th>
+                        <th>Địa chỉ giao</th>
+                        <th>Trạng thái</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @foreach (QuanLyBanHang.Models.Delivery item in Model)
+                    {
+                        <tr>
+                            <td>@item._id</td>
+                            <td>@item.orderId</td>
+                            <td>@item.shipperName</td>
+                            <td>@item.shipperPhone</td>
+                            <td>@item.pickupDate</td>
+                            <td>@item.expectedDate</td>
+                            <td>@item.address</td>
+                            <td>
+                                <span class="shipping-status">
+                                    Đang giao
+                                </span>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+
+            </table>
+
+        </div>
+    }
+
+</div>

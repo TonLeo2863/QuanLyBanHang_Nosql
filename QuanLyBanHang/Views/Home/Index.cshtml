@@ -1,0 +1,561 @@
+﻿@{
+    ViewBag.Title = "Trang chủ";
+}
+
+<style>
+    .home-dashboard {
+        width: 100%;
+        padding: 30px 0 50px;
+        font-family: "Segoe UI", Arial, sans-serif;
+        color: #1e293b;
+    }
+
+    /* HEADER */
+    .home-header {
+        padding: 35px 40px;
+        margin-bottom: 35px;
+        border-radius: 20px;
+        color: white;
+        background: linear-gradient(135deg, #2563eb, #4f46e5);
+        box-shadow: 0 12px 30px rgba(37, 99, 235, 0.2);
+    }
+
+    .home-header small {
+        display: block;
+        margin-bottom: 8px;
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 2px;
+        opacity: 0.8;
+    }
+
+    .home-header h1 {
+        margin: 0 0 10px;
+        font-size: 38px;
+        font-weight: 700;
+    }
+
+    .home-header p {
+        margin: 0;
+        font-size: 16px;
+        opacity: 0.9;
+    }
+
+
+    /* TITLE */
+    .home-section-title {
+        margin-bottom: 18px;
+    }
+
+    .home-section-title h2 {
+        margin: 0 0 5px;
+        font-size: 24px;
+        font-weight: 700;
+        color: #172033;
+    }
+
+    .home-section-title p {
+        margin: 0;
+        font-size: 14px;
+        color: #94a3b8;
+    }
+
+
+    /* MAIN CARDS */
+    .home-main-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 22px;
+        margin-bottom: 40px;
+    }
+
+    .home-card {
+        position: relative;
+        padding: 25px;
+        min-height: 220px;
+        background: white;
+        border-radius: 18px;
+        border: 1px solid #e8edf3;
+        box-shadow: 0 5px 20px rgba(15, 23, 42, 0.07);
+        transition: all 0.25s ease;
+        overflow: hidden;
+    }
+
+    .home-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 15px 35px rgba(15, 23, 42, 0.13);
+    }
+
+    .home-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 5px;
+    }
+
+    .customer-card::before {
+        background: #2563eb;
+    }
+
+    .product-card::before {
+        background: #10b981;
+    }
+
+    .order-card::before {
+        background: #f59e0b;
+    }
+
+
+    /* CARD TOP */
+    .home-card-top {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        margin-bottom: 25px;
+    }
+
+    .home-card-icon {
+        width: 50px;
+        height: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 14px;
+        font-size: 24px;
+    }
+
+    .customer-icon {
+        background: #eff6ff;
+    }
+
+    .product-icon {
+        background: #ecfdf5;
+    }
+
+    .order-icon {
+        background: #fffbeb;
+    }
+
+    .home-card-title {
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0.8px;
+        color: #64748b;
+    }
+
+
+    /* NUMBER */
+    .home-number {
+        margin-bottom: 6px;
+        font-size: 48px;
+        line-height: 1;
+        font-weight: 750;
+        color: #172033;
+    }
+
+    .home-description {
+        margin-bottom: 25px;
+        font-size: 14px;
+        color: #94a3b8;
+    }
+
+
+    /* BUTTON */
+    .home-button {
+        display: inline-block;
+        padding: 10px 16px;
+        border-radius: 8px;
+        color: white !important;
+        font-size: 13px;
+        font-weight: 600;
+        text-decoration: none !important;
+        transition: all 0.2s ease;
+    }
+
+    .home-button:hover {
+        transform: translateX(3px);
+        opacity: 0.9;
+    }
+
+    .customer-button {
+        background: #2563eb;
+    }
+
+    .product-button {
+        background: #059669;
+    }
+
+    .order-button {
+        background: #d97706;
+    }
+
+
+    /* DELIVERY */
+    .delivery-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 22px;
+    }
+
+    .delivery-card {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 25px;
+        min-height: 140px;
+        background: white;
+        border-radius: 18px;
+        border: 1px solid #e8edf3;
+        box-shadow: 0 5px 20px rgba(15, 23, 42, 0.07);
+        transition: all 0.25s ease;
+    }
+
+    .delivery-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 35px rgba(15, 23, 42, 0.11);
+    }
+
+    .delivery-left {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+    }
+
+    .delivery-icon {
+        width: 60px;
+        height: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 15px;
+        font-size: 28px;
+    }
+
+    .delivery-blue {
+        background: #ecfeff;
+    }
+
+    .delivery-red {
+        background: #fef2f2;
+    }
+
+    .delivery-label {
+        margin-bottom: 6px;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.7px;
+        color: #64748b;
+    }
+
+    .delivery-number {
+        font-size: 36px;
+        line-height: 1;
+        font-weight: 750;
+        color: #172033;
+    }
+
+    .delivery-description {
+        margin-top: 6px;
+        font-size: 13px;
+        color: #94a3b8;
+    }
+
+    .delivery-button {
+        display: inline-block;
+        padding: 10px 16px;
+        border-radius: 8px;
+        background: #0891b2;
+        color: white !important;
+        font-size: 13px;
+        font-weight: 600;
+        text-decoration: none !important;
+    }
+
+    .delivery-button:hover {
+        opacity: 0.9;
+    }
+
+    .red-button {
+        background: #dc2626;
+    }
+
+
+    /* FOOTER */
+    .home-footer {
+        margin-top: 40px;
+        padding-top: 20px;
+        border-top: 1px solid #e2e8f0;
+        text-align: center;
+        color: #94a3b8;
+        font-size: 13px;
+    }
+
+
+    /* RESPONSIVE */
+   @@media (max-width: 900px) {
+
+        .home-main-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .delivery-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @@media (max-width: 600px) {
+
+        .home-header {
+            padding: 28px 22px;
+        }
+
+        .home-header h1 {
+            font-size: 28px;
+        }
+
+        .delivery-card {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 20px;
+        }
+    }
+</style>
+
+
+<div class="home-dashboard">
+
+    <!-- HEADER -->
+    <div class="home-header">
+
+        <small>DASHBOARD</small>
+
+        <h1>QUẢN LÝ BÁN HÀNG</h1>
+
+        <p>
+            Theo dõi khách hàng, sản phẩm, đơn hàng và giao hàng
+            trên hệ thống CouchDB.
+        </p>
+
+    </div>
+
+
+    <!-- TỔNG QUAN -->
+    <div class="home-section-title">
+
+        <h2>Tổng quan hệ thống</h2>
+
+        <p>
+            Thống kê dữ liệu hiện tại
+        </p>
+
+    </div>
+
+
+    <!-- 3 CARD -->
+    <div class="home-main-grid">
+
+
+        <!-- KHÁCH HÀNG -->
+        <div class="home-card customer-card">
+
+            <div class="home-card-top">
+
+                <div class="home-card-icon customer-icon">
+                    👥
+                </div>
+
+                <div class="home-card-title">
+                    KHÁCH HÀNG
+                </div>
+
+            </div>
+
+            <div class="home-number">
+                @ViewBag.CustomerCount
+            </div>
+
+            <div class="home-description">
+                khách hàng trong hệ thống
+            </div>
+
+            @Html.ActionLink(
+                "Quản lý khách hàng →",
+                "Index",
+                "Customer",
+                null,
+                new { @class = "home-button customer-button" }
+            )
+
+        </div>
+
+
+        <!-- SẢN PHẨM -->
+        <div class="home-card product-card">
+
+            <div class="home-card-top">
+
+                <div class="home-card-icon product-icon">
+                    📦
+                </div>
+
+                <div class="home-card-title">
+                    SẢN PHẨM
+                </div>
+
+            </div>
+
+            <div class="home-number">
+                @ViewBag.ProductCount
+            </div>
+
+            <div class="home-description">
+                sản phẩm đang quản lý
+            </div>
+
+            @Html.ActionLink(
+                "Quản lý sản phẩm →",
+                "Index",
+                "Product",
+                null,
+                new { @class = "home-button product-button" }
+            )
+
+        </div>
+
+
+        <!-- ĐƠN HÀNG -->
+        <div class="home-card order-card">
+
+            <div class="home-card-top">
+
+                <div class="home-card-icon order-icon">
+                    🛍️
+                </div>
+
+                <div class="home-card-title">
+                    ĐƠN HÀNG
+                </div>
+
+            </div>
+
+            <div class="home-number">
+                @ViewBag.OrderCount
+            </div>
+
+            <div class="home-description">
+                đơn hàng đã tạo
+            </div>
+
+            @Html.ActionLink(
+       "Quản lý đơn hàng →",
+       "Index",
+       "Order",
+       null,
+       new { @class = "dashboard-button blue-button" }
+   )
+
+        </div>
+
+    </div>
+
+
+    <!-- GIAO HÀNG -->
+    <div class="home-section-title">
+
+        <h2>Giao hàng</h2>
+
+        <p>
+            Theo dõi tình trạng giao hàng
+        </p>
+
+    </div>
+
+
+    <div class="delivery-grid">
+
+
+        <!-- TỔNG GIAO HÀNG -->
+        <div class="delivery-card">
+
+            <div class="delivery-left">
+
+                <div class="delivery-icon delivery-blue">
+                    🚚
+                </div>
+
+                <div>
+
+                    <div class="delivery-label">
+                        TỔNG ĐƠN GIAO HÀNG
+                    </div>
+
+                    <div class="delivery-number">
+                        @ViewBag.DeliveryCount
+                    </div>
+
+                    <div class="delivery-description">
+                        đơn giao hàng
+                    </div>
+
+                </div>
+
+            </div>
+
+            @Html.ActionLink(
+                "Xem giao hàng →",
+                "Index",
+                "Delivery",
+                null,
+                new { @class = "delivery-button" }
+            )
+
+        </div>
+
+
+        <!-- ĐANG GIAO -->
+        <div class="delivery-card">
+
+            <div class="delivery-left">
+
+                <div class="delivery-icon delivery-red">
+                    🚛
+                </div>
+
+                <div>
+
+                    <div class="delivery-label">
+                        ĐANG GIAO HÀNG
+                    </div>
+
+                    <div class="delivery-number">
+                        @ViewBag.ShippingCount
+                    </div>
+
+                    <div class="delivery-description">
+                        đơn đang được giao
+                    </div>
+
+                </div>
+
+            </div>
+
+            @Html.ActionLink(
+       "Theo dõi đơn đang giao →",
+       "Index",
+       "Shipping",
+       null,
+       new { @class = "delivery-button red-button" }
+   )
+
+        </div>   
+
+    </div>
+
+
+    <div class="home-footer">
+        Hệ thống quản lý bán hàng • CouchDB
+    </div>
+
+</div>

@@ -1,0 +1,64 @@
+﻿@model QuanLyBanHang.Models.Customer
+
+@{
+    ViewBag.Title = "Xóa khách hàng";
+}
+
+<h2>Xóa khách hàng</h2>
+
+<div class="alert alert-danger">
+    Bạn có chắc chắn muốn xóa khách hàng này?
+</div>
+
+<table class="table">
+
+    <tr>
+        <th>Mã</th>
+        <td>@Model._id</td>
+    </tr>
+
+    <tr>
+        <th>Họ tên</th>
+        <td>@Model.name</td>
+    </tr>
+
+    <tr>
+        <th>Số điện thoại</th>
+        <td>@Model.phone</td>
+    </tr>
+
+    <tr>
+        <th>Email</th>
+        <td>@Model.email</td>
+    </tr>
+
+</table>
+
+@using (Html.BeginForm(
+    "DeleteConfirm",
+    "Customer",
+    FormMethod.Post))
+{
+    @Html.Hidden(
+        "id",
+        Model._id
+    )
+
+    @Html.Hidden(
+        "rev",
+        Model._rev
+    )
+
+    <button type="submit"
+            class="btn btn-danger">
+        Xác nhận xóa
+    </button>
+
+    @Html.ActionLink(
+        "Hủy",
+        "Index",
+        "Customer",
+        null,
+        new { @class = "btn btn-secondary" }
+    )
+}

@@ -1,0 +1,101 @@
+﻿@model QuanLyBanHang.Models.Product
+
+@{
+    ViewBag.Title = "Xóa sản phẩm";
+}
+
+<h2>Xóa sản phẩm</h2>
+
+<div class="alert alert-danger">
+
+    Bạn có chắc chắn muốn xóa sản phẩm này không?
+
+</div>
+
+<table class="table table-bordered">
+
+    <tr>
+
+        <th>Mã sản phẩm</th>
+
+        <td>
+            @Model._id
+        </td>
+
+    </tr>
+
+    <tr>
+
+        <th>Tên sản phẩm</th>
+
+        <td>
+            @Model.name
+        </td>
+
+    </tr>
+
+    <tr>
+
+        <th>Loại</th>
+
+        <td>
+            @Model.category
+        </td>
+
+    </tr>
+
+    <tr>
+
+        <th>Đơn giá</th>
+
+        <td>
+            @Model.price.ToString("N0") VNĐ
+        </td>
+
+    </tr>
+
+    <tr>
+
+        <th>Số lượng</th>
+
+        <td>
+            @Model.quantity
+        </td>
+
+    </tr>
+
+</table>
+
+@using (Html.BeginForm(
+    "DeleteConfirm",
+    "Product",
+    FormMethod.Post))
+{
+    @Html.Hidden(
+        "id",
+        Model._id
+    )
+
+    @Html.Hidden(
+        "rev",
+        Model._rev
+    )
+
+    <button type="submit"
+            class="btn btn-danger">
+
+        Xác nhận xóa
+
+    </button>
+
+    @Html.ActionLink(
+        "Hủy",
+        "Index",
+        "Product",
+        null,
+        new
+        {
+            @class = "btn btn-secondary"
+        }
+    )
+}

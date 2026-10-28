@@ -1,0 +1,75 @@
+﻿@model QuanLyBanHang.Models.Order
+
+@{
+    ViewBag.Title = "Xóa đơn hàng";
+}
+
+<h2>Xóa đơn hàng</h2>
+
+<div class="alert alert-warning">
+    Bạn có chắc muốn xóa đơn hàng
+    <strong>@Model._id</strong>
+    không?
+</div>
+
+<table class="table table-bordered">
+
+    <tr>
+        <th>Mã đơn</th>
+        <td>@Model._id</td>
+    </tr>
+
+    <tr>
+        <th>Mã khách hàng</th>
+        <td>@Model.customerId</td>
+    </tr>
+
+    <tr>
+        <th>Ngày</th>
+        <td>@Model.date</td>
+    </tr>
+
+    <tr>
+        <th>Trạng thái</th>
+        <td>@Model.status</td>
+    </tr>
+
+    <tr>
+        <th>Tổng tiền</th>
+        <td>
+            @Model.total.ToString("N0") VNĐ
+        </td>
+    </tr>
+
+</table>
+
+@using (Html.BeginForm(
+    "DeleteConfirm",
+    "Order",
+    FormMethod.Post
+))
+{
+    <input type="hidden"
+           name="id"
+           value="@Model._id" />
+
+    <input type="hidden"
+           name="rev"
+           value="@Model._rev" />
+
+    <button type="submit"
+            class="btn btn-danger">
+        Xác nhận xóa
+    </button>
+
+    @Html.ActionLink(
+        "Hủy",
+        "Index",
+        "Order",
+        null,
+        new
+        {
+            @class = "btn btn-secondary"
+        }
+    )
+}

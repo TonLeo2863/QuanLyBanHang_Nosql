@@ -1,0 +1,108 @@
+﻿@model List<QuanLyBanHang.Models.Order>
+
+@{
+    ViewBag.Title = "Danh sách đơn hàng";
+}
+
+<h2>Danh sách đơn hàng</h2>
+
+<p>
+    @Html.ActionLink(
+        "Thêm đơn hàng",
+        "Create",
+        "Order",
+        null,
+        new
+        {
+            @class = "btn btn-success"
+        }
+    )
+</p>
+
+<table class="table table-bordered table-striped">
+
+    <thead>
+        <tr>
+            <th>Mã đơn</th>
+            <th>Mã khách hàng</th>
+            <th>Ngày</th>
+            <th>Trạng thái</th>
+            <th>Tổng tiền</th>
+            <th>Thanh toán</th>
+            <th>Địa chỉ</th>
+            <th>Thao tác</th>
+        </tr>
+    </thead>
+
+    <tbody>
+
+        @foreach (QuanLyBanHang.Models.Order order in Model)
+        {
+            <tr>
+
+                <td>
+                    @order._id
+                </td>
+
+                <td>
+                    @order.customerId
+                </td>
+
+                <td>
+                    @order.orderDate
+                </td>
+
+                <td>
+                    @order.status
+                </td>
+
+                <td>
+                    @order.total.ToString("N0") VNĐ
+                </td>
+
+                <td>
+                    @order.paymentMethod
+                </td>
+
+                <td>
+                    @order.address
+                </td>
+
+                <td>
+
+                    @Html.ActionLink(
+                        "Sửa",
+                        "Edit",
+                        "Order",
+                        new
+                        {
+                            id = order._id
+                        },
+                        new
+                        {
+                            @class = "btn btn-warning btn-sm"
+                        }
+                    )
+
+                    @Html.ActionLink(
+                        "Xóa",
+                        "Delete",
+                        "Order",
+                        new
+                        {
+                            id = order._id
+                        },
+                        new
+                        {
+                            @class = "btn btn-danger btn-sm"
+                        }
+                    )
+
+                </td>
+
+            </tr>
+        }
+
+    </tbody>
+
+</table>
