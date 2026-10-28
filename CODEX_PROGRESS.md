@@ -15,7 +15,7 @@ Ngày khởi tạo hồ sơ: 28/10/2026. **Trạng thái mới nhất: kiểm th
 | P0 – Môi trường/bảo mật | Kết nối/xác thực/khởi tạo thật PASS | Xem bản ghi tích hợp cuối tệp | Session đúng danh tính; DB/index HTTP 200; seed chạy lại giữ nguyên revision | Đổi mật khẩu cũ/Private/lịch sử: chưa xác nhận |
 | P1 – Lỗi nền tảng/CRUD | Kiểm thử kỹ thuật PASS | Xem bản ghi tích hợp cuối tệp | CRUD 4 loại qua IIS; revision, validation, Shipping/Dashboard, lỗi DB/credential PASS | Chưa có ảnh/kiểm tra bố cục; các chức năng P4 chưa thuộc nghiệm thu này |
 | P2 – DB/seed/schema | PASS kỹ thuật | Commit P2 sau bản ghi | 100 seed thật, idempotency, tham chiếu/tổng, Mango/_explain | Ảnh Fauxton thuộc P3 |
-| P3 – Mango/Fauxton query | Chưa làm | — | — | — |
+| P3 – Mango/Fauxton query | PASS API/tài liệu; ảnh NOT RUN | Commit P3 | 5+5 query/_explain, bookmark PASS | Chưa thao tác/chụp GUI |
 | P4 – Nghiệp vụ/roles | Chưa làm | — | — | — |
 | P5 – Backup/tests | Chưa làm | — | — | — |
 | P6 – Báo cáo/demo | Chưa làm | — | — | — |
@@ -125,3 +125,10 @@ Ngày khởi tạo hồ sơ: 28/10/2026. **Trạng thái mới nhất: kiểm th
 - **Test thật:** Test-P2.py PASS: lần đầu thêm 100 doc, lần hai thêm 0; toàn bộ nội dung và revision giữ nguyên; tham chiếu đúng loại, mỗi đơn ít nhất 2 item, tổng đúng; query sort và _explain chọn type-date PASS. Không sửa/xóa tài liệu có sẵn. Chưa thay code ứng dụng.
 - **Rubric:** 5a/5b/5c/5d/8 có thêm bằng chứng kỹ thuật; ảnh GUI NOT RUN. Giữ nguyên các file chưa tracked ban đầu. Không push/merge, chưa xác nhận an toàn lịch sử; single-node vẫn BLOCKED quyền API quản trị 403.
 - **Bước tiếp:** P3 bộ 5+5 truy vấn, hướng dẫn Fauxton/so sánh; sau đó P4/P5 theo yêu cầu liên tục.
+
+### 2026-10-28 – P3: Fauxton và truy vấn thực tế
+- **Files/đã làm:** docs/FAUXTON_DEMO.md gồm 10 thao tác, phân biệt GUI/API/backup; so sánh Compass khác hệ DB, nguồn chính thức; docs/SCREENSHOT_CHECKLIST.md ghi toàn bộ ảnh NOT RUN; docs/mango-queries.json chứa 5 cơ bản + 5 nâng cao có số lượng seed mong đợi; tests/Test-Mango.py kiểm tra kết quả và index thực tế. couch.py chỉ bổ sung mã lỗi chữ cái an toàn, không in reason/body.
+- **Kiểm thử:** Test-Mango.py PASS trên CouchDB thật, counts B1..B5 = 20/10/2/5/5; A1..A5 = 11/11/4/1/6; _explain chọn đúng index ở cả 10 query; bookmark limit 7 khớp tập đầy đủ, đúng thứ tự/không trùng. Hồi quy IIS P0/P1 sau P2 PASS (7 GET, CRUD/revision/validation/CSRF, lỗi DB/credential).
+- **Lỗi đã xử lý:** _explain ban đầu chọn index dự phòng ở query không có sort đủ trường; bổ sung sort phù hợp và chạy lại cả 10 PASS. Một request 403 tạm thời sau bộ thử mật khẩu sai; lần chạy tiếp xác thực lại hoạt động, không thay quyền/credential hoặc vô hiệu cơ chế bảo vệ. Không khẳng định nguyên nhân máy chủ khi chưa có log quản trị.
+- **Rubric:** 1–4/5c/5d/7a/7b thêm tài liệu và API test; thao tác GUI/ảnh vẫn NOT RUN, không dùng API làm bằng chứng đã chạy GUI. Không đo hiệu năng. Single-node/lịch sử Git vẫn chưa xác nhận.
+- **Git:** commit P3 cục bộ tiếng Việt sau diff/secret scan; không push/merge. Chuyển P4.

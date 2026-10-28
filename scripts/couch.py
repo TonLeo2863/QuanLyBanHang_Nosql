@@ -7,9 +7,9 @@ import urllib.error
 import urllib.parse
 
 class CouchError(Exception):
-    def __init__(self, status):
+    def __init__(self, status, code=''):
         self.status = status
-        super().__init__('CouchDB HTTP ' + str(status))
+        super().__init__('CouchDB HTTP ' + str(status) + (' code='+code if code else ''))
 
 class Couch:
     def __init__(self, database=None):
@@ -38,7 +38,11 @@ class Couch:
                 return json.load(r)
         except urllib.error.HTTPError as e:
             if e.code in allowed: return None
-            raise CouchError(e.code) from None
+            import re
+            try: code = json.load(e).get('error','')
+            except Exception: code = ''
+            if not isinstance(code,str) or not re.fullmatch('[a-z_]{1,60}',code): code = ''
+            raise CouchError(e.code, code) from None
         except (urllib.error.URLError, TimeoutError):
             raise CouchError(0) from None
 

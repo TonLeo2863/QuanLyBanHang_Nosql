@@ -73,3 +73,8 @@ Kiểm tra quản trị bổ sung: `/_membership` trả HTTP 403 bằng tài kho
 ### P2 – bằng chứng mới
 - PASS: 20 khách, 30 sản phẩm, 30 đơn nhiều item, 20 giao hàng giả; 9 index; seed chạy lại không đổi nội dung/revision; toàn bộ tham chiếu/tổng tiền trong bộ seed hợp lệ.
 - PASS: Mango sort và `_explain` thực tế chọn `type-date`. Mục 5b đã có đủ quy mô mới theo yêu cầu; ảnh document/index NOT RUN. Nguồn bằng chứng: tests/Test-P2.py và docs/DATABASE_DESIGN.md. Chưa tự chấm điểm.
+
+### P3 – Fauxton/Mango
+- PASS tài liệu: FAUXTON_DEMO.md (10 thao tác, phạm vi GUI/API, so sánh Compass, ưu/nhược/ứng dụng và nguồn chính thức).
+- PASS thực thi API: 5 query cơ bản + 5 nâng cao, số lượng seed đúng, _explain chọn đúng index; phân trang limit 7 đầy đủ/không trùng.
+- NOT RUN: 7a/7b trên GUI, ảnh Fauxton theo SCREENSHOT_CHECKLIST.md; chưa đánh dấu toàn bộ mục GUI hoàn thành. Không có số liệu benchmark được tuyên bố.
