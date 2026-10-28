@@ -10,3 +10,7 @@ Giữ ASP.NET MVC 5, .NET Framework 4.7.2, Visual Studio 2022 và CouchDB 3.x.
 6. Chạy ứng dụng và kiểm tra sáu trang Home, Customer, Product, Order, Delivery, Shipping. Khi thiếu cấu hình, mất kết nối hoặc HTTP 401/403/404/409, ứng dụng phải hiện thông báo có kiểm soát.
 
 Không commit cấu hình riêng. Không chụp màn hình mật khẩu hoặc Authorization header. P0/P1 chỉ được nghiệm thu sau khi chạy build, Razor và CRUD với CouchDB thực tế; xem CODEX_PROGRESS.md.
+
+## Kiểm thử
+
+Xem [tests/README.md](tests/README.md) để build cả Razor, chạy smoke test giả lập và thực hiện checklist CRUD/CouchDB thật. Truy vấn chính dùng Mango `_find` có bookmark và index `type-id`; script khởi tạo phải chạy trước khi dùng database mới. Bốn tài liệu mẫu chỉ phục vụ smoke test P0/P1, chưa đáp ứng quy mô dữ liệu P2. Ứng dụng hiện chưa có đăng nhập/phân quyền P4.

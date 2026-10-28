@@ -92,6 +92,10 @@
 
     <main class="container body-content">
 
+        @if (ViewBag.Error != null || TempData["Error"] != null)
+        {
+            <div class="alert alert-danger" role="alert">@(ViewBag.Error ?? TempData["Error"])</div>
+        }
         @RenderBody()
 
         <hr />

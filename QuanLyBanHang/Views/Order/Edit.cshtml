@@ -15,6 +15,8 @@
 
 @using (Html.BeginForm())
 {
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(false, "", new { @class = "text-danger" })
     @Html.HiddenFor(m => m._id)
 
     @Html.HiddenFor(m => m._rev)
@@ -82,7 +84,7 @@
 
     <h4>Sản phẩm</h4>
 
-    @if (Model.items != null)
+    if (Model.items != null)
     {
         for (int i = 0;
              i < Model.items.Count;

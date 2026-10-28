@@ -24,7 +24,7 @@ Send-Json POST '/_index' @{ index=@{fields=@('type','_id')}; ddoc='idx-type-id';
 $documents = @(
     @{_id='demo-customer-001';type='customer';name='Khách mẫu 01';phone='';email='demo@example.invalid';address='Địa chỉ giả lập'},
     @{_id='demo-product-001';type='product';name='Sản phẩm mẫu';category='Demo';price=10000;quantity=20;status='active'},
-    @{_id='demo-order-001';type='order';customerId='demo-customer-001';orderDate='2026-10-28';status='processing';items=@(@{productId='demo-product-001';quantity=2;price=10000});total=20000;paymentMethod='COD';address='Địa chỉ giả lập'},
+    @{_id='demo-order-001';type='order';customerId='demo-customer-001';orderDate='2026-10-28';status='shipping';items=@(@{productId='demo-product-001';quantity=2;price=10000});total=20000;paymentMethod='COD';address='Địa chỉ giả lập'},
     @{_id='demo-delivery-001';type='delivery';orderId='demo-order-001';shipperId='demo-shipper';shipperName='Người giao mẫu';status='shipping';pickupDate='2026-10-28';expectedDate='2026-10-29';address='Địa chỉ giả lập'}
 )
 foreach ($document in $documents) {

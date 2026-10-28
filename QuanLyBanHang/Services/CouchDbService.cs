@@ -2,6 +2,8 @@
 using Newtonsoft.Json.Linq;
 using System;
 using System.Net.Http;
+using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
@@ -15,7 +17,10 @@ namespace QuanLyBanHang.Services
 
     public class CouchDbService
     {
-        private static readonly HttpClient client = new HttpClient { Timeout = TimeSpan.FromSeconds(15) };
+        private static readonly HttpClient sharedClient = new HttpClient { Timeout = TimeSpan.FromSeconds(15) };
+        private readonly HttpClient client;
+        public CouchDbService() : this(sharedClient) { }
+        public CouchDbService(HttpClient httpClient) { client = httpClient ?? throw new ArgumentNullException("httpClient"); }
         private static string Setting(string name)
         {
             var value = Environment.GetEnvironmentVariable(name);
@@ -31,7 +36,10 @@ namespace QuanLyBanHang.Services
                 throw new CouchDbException("COUCHDB_URL phải là địa chỉ máy chủ HTTP/HTTPS không chứa thông tin đăng nhập.");
             if (server.Scheme == "http" && !server.IsLoopback)
                 throw new CouchDbException("Kết nối CouchDB từ xa phải dùng HTTPS.");
-            var url = server.AbsoluteUri.TrimEnd('/') + "/" + Uri.EscapeDataString(Setting("COUCHDB_DATABASE")) + path;
+            var database = Setting("COUCHDB_DATABASE");
+            if (!Regex.IsMatch(database, @"^[a-z][a-z0-9_$()+/\-]*$"))
+                throw new CouchDbException("Tên database CouchDB không hợp lệ.");
+            var url = server.AbsoluteUri.TrimEnd('/') + "/" + Uri.EscapeDataString(database) + path;
             using (var request = new HttpRequestMessage(method, url))
             {
                 request.Headers.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(Encoding.UTF8.GetBytes(Setting("COUCHDB_USERNAME") + ":" + Setting("COUCHDB_PASSWORD"))));
@@ -58,11 +66,50 @@ namespace QuanLyBanHang.Services
                 catch (HttpRequestException) { throw new CouchDbException("Không kết nối được CouchDB. Kiểm tra dịch vụ và địa chỉ cấu hình."); }
             }
         }
-        public Task<string> GetAllDocuments() { return Send(HttpMethod.Get, "/_all_docs?include_docs=true"); }
+        public async Task<List<T>> FindDocuments<T>(string type, string status = null)
+        {
+            var selector = new JObject { ["type"] = type };
+            if (status != null) selector["status"] = status;
+            var documents = new List<T>();
+            string bookmark = null;
+            while (true)
+            {
+                var query = new JObject { ["selector"] = selector, ["limit"] = 200, ["sort"] = new JArray(new JObject { ["type"] = "asc" }, new JObject { ["_id"] = "asc" }) };
+                if (bookmark != null) query["bookmark"] = bookmark;
+                var json = await Send(HttpMethod.Post, "/_find", query);
+                try
+                {
+                    var result = JsonConvert.DeserializeObject<FindResponse<T>>(json);
+                    if (result == null || result.docs == null || result.docs.Exists(x => object.ReferenceEquals(x, null))) throw new JsonException();
+                    documents.AddRange(result.docs);
+                    if (result.docs.Count == 0) break;
+                    if (string.IsNullOrEmpty(result.bookmark) || result.bookmark == bookmark)
+                        throw new CouchDbException("CouchDB trả về phân trang không hợp lệ.");
+                    bookmark = result.bookmark;
+                }
+                catch (JsonException) { throw new CouchDbException("Dữ liệu CouchDB trả về không hợp lệ."); }
+            }
+            return documents;
+        }
+        private class FindResponse<T>
+        {
+            public List<T> docs { get; set; }
+            public string bookmark { get; set; }
+        }
+        public async Task<T> ReadDocument<T>(string id, string type)
+        {
+            try
+            {
+                var data = JObject.Parse(await GetDocument(id));
+                if ((string)data["type"] != type) throw new CouchDbException("Tài liệu không thuộc loại dữ liệu cần thao tác.");
+                return data.ToObject<T>();
+            }
+            catch (JsonException) { throw new CouchDbException("Nội dung tài liệu không hợp lệ."); }
+        }
         public Task<string> GetDocument(string id) { ValidateId(id); return Send(HttpMethod.Get, "/" + Uri.EscapeDataString(id)); }
         private static void ValidateId(string id)
         {
-            if (string.IsNullOrWhiteSpace(id) || id.StartsWith("_")) throw new CouchDbException("Mã tài liệu không hợp lệ hoặc thuộc vùng dành riêng.");
+            if (string.IsNullOrWhiteSpace(id) || id.StartsWith("_") || id == "." || id == "..") throw new CouchDbException("Mã tài liệu không hợp lệ hoặc thuộc vùng dành riêng.");
         }
         public Task<string> CreateDocument(string id, object document)
         {
@@ -70,13 +117,19 @@ namespace QuanLyBanHang.Services
             var data = JObject.FromObject(document); data.Remove("_rev"); data["_id"] = id;
             return Send(HttpMethod.Put, "/" + Uri.EscapeDataString(id), data);
         }
-        public Task<string> UpdateDocument(string id, object document)
+        public async Task<string> UpdateDocument(string id, object document)
         {
             ValidateId(id);
             var data = JObject.FromObject(document);
             if (string.IsNullOrWhiteSpace((string)data["_rev"])) throw new CouchDbException("Thiếu phiên bản dữ liệu. Hãy tải lại trang sửa.");
-            data["_id"] = id;
-            return Send(HttpMethod.Put, "/" + Uri.EscapeDataString(id), data);
+            JObject existing;
+            try { existing = JObject.Parse(await GetDocument(id)); }
+            catch (JsonException) { throw new CouchDbException("Nội dung tài liệu không hợp lệ."); }
+            if ((string)existing["_rev"] != (string)data["_rev"])
+                throw new CouchDbException("Dữ liệu đã thay đổi. Hãy tải lại trang sửa.");
+            existing.Merge(data, new JsonMergeSettings { MergeArrayHandling = MergeArrayHandling.Replace, MergeNullValueHandling = MergeNullValueHandling.Merge });
+            existing["_id"] = id;
+            return await Send(HttpMethod.Put, "/" + Uri.EscapeDataString(id), existing);
         }
         public async Task<bool> DeleteDocument(string id, string rev)
         {

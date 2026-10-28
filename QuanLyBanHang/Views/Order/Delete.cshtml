@@ -26,7 +26,7 @@
 
     <tr>
         <th>Ngày</th>
-        <td>@Model.date</td>
+        <td>@Model.orderDate</td>
     </tr>
 
     <tr>
@@ -49,6 +49,7 @@
     FormMethod.Post
 ))
 {
+    @Html.AntiForgeryToken()
     <input type="hidden"
            name="id"
            value="@Model._id" />

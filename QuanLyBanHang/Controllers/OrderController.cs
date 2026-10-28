@@ -1,5 +1,5 @@
-﻿using Newtonsoft.Json;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using QuanLyBanHang.Models;
@@ -9,267 +9,75 @@ namespace QuanLyBanHang.Controllers
 {
     public class OrderController : Controller
     {
-        private readonly CouchDbService couchDbService;
-
-        public OrderController()
-        {
-            couchDbService =
-                new CouchDbService();
-        }
-
-        // =========================
-        // DANH SACH DON HANG
-        // =========================
-
+        private readonly CouchDbService couchDbService = new CouchDbService();
         public async Task<ActionResult> Index()
         {
-            string data =
-                await couchDbService.GetAllDocuments();
-
-            dynamic result =
-                JsonConvert.DeserializeObject(data);
-
-            List<Order> orders =
-                new List<Order>();
-
-            foreach (dynamic row in result.rows)
+            var documents = new List<Order>();
+            try { documents = await couchDbService.FindDocuments<Order>("order"); }
+            catch (CouchDbException ex) { ViewBag.Error = ex.Message; }
+            return View(documents);
+        }
+        [HttpGet]
+        public ActionResult Create() { return View(new Order()); }
+        [HttpGet]
+        public async Task<ActionResult> Edit(string id) { return await Load(id, "Edit"); }
+        [HttpGet]
+        public async Task<ActionResult> Delete(string id) { return await Load(id, "Delete"); }
+        private async Task<ActionResult> Load(string id, string view)
+        {
+            try { return View(view, await couchDbService.ReadDocument<Order>(id, "order")); }
+            catch (CouchDbException ex) { TempData["Error"] = ex.Message; return RedirectToAction("Index"); }
+        }
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<ActionResult> Create(Order order) { return await Save(order, false); }
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<ActionResult> Edit(Order order) { return await Save(order, true); }
+        private async Task<ActionResult> Save(Order order, bool editing)
+        {
+            var view = editing ? "Edit" : "Create";
+            if (!ModelState.IsValid) return View(view, order);
+            try
             {
-                if (row.doc != null)
+                order.type = "order";
+                if (editing) await couchDbService.ReadDocument<Order>(order._id, "order");
+
+            System.DateTime parsedDate;
+            if (!System.DateTime.TryParseExact(order.orderDate, "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out parsedDate))
+                ModelState.AddModelError("orderDate", "Ngày đặt hàng phải có dạng yyyy-MM-dd hợp lệ.");
+            order.items = (order.items ?? new List<OrderItem>()).Where(x => x != null && !(string.IsNullOrWhiteSpace(x.productId) && x.quantity == 0 && x.price == 0)).ToList();
+            if (order.items.Count == 0) ModelState.AddModelError("", "Đơn hàng cần ít nhất một sản phẩm.");
+            decimal total = 0;
+            foreach (var item in order.items)
+            {
+                if (string.IsNullOrWhiteSpace(item.productId) || item.quantity <= 0 || item.price < 0)
+                    ModelState.AddModelError("", "Sản phẩm cần mã hợp lệ, số lượng dương và đơn giá không âm.");
+                else
                 {
-                    string type =
-                        row.doc.type;
-
-                    if (type == "order")
-                    {
-                        Order order =
-                            JsonConvert.DeserializeObject<Order>(
-                                row.doc.ToString()
-                            );
-
-                        orders.Add(order);
-                    }
+                    await couchDbService.ReadDocument<Product>(item.productId, "product");
+                    try { total = checked(total + checked(item.quantity * item.price)); }
+                    catch (System.OverflowException) { ModelState.AddModelError("", "Tổng tiền vượt giới hạn cho phép."); }
                 }
             }
+            await couchDbService.ReadDocument<Customer>(order.customerId, "customer");
+            order.total = total;
 
-            return View(orders);
-        }
-
-        // =========================
-        // THEM DON HANG - GET
-        // =========================
-
-        [HttpGet]
-        public ActionResult Create()
-        {
-            return View();
-        }
-
-        // =========================
-        // THEM DON HANG - POST
-        // =========================
-
-        [HttpPost]
-        public async Task<ActionResult> Create(
-            Order order)
-        {
-            if (string.IsNullOrWhiteSpace(order._id))
-            {
-                ViewBag.Error =
-                    "Mã đơn hàng không được để trống.";
-
-                return View(order);
-            }
-
-            if (string.IsNullOrWhiteSpace(order.customerId))
-            {
-                ViewBag.Error =
-                    "Mã khách hàng không được để trống.";
-
-                return View(order);
-            }
-
-            if (order.items == null)
-            {
-                order.items =
-                    new List<OrderItem>();
-            }
-
-            decimal total =
-                0;
-
-            foreach (OrderItem item in order.items)
-            {
-                total =
-                    total
-                    + (item.quantity * item.price);
-            }
-
-            order.total =
-                total;
-
-            order.type =
-                "order";
-
-            string result =
-                await couchDbService.CreateDocument(
-                    order._id,
-                    order
-                );
-
-            if (result.Contains("\"ok\":true"))
-            {
+                if (!ModelState.IsValid) return View(view, order);
+                if (editing) await couchDbService.UpdateDocument(order._id, order);
+                else await couchDbService.CreateDocument(order._id, order);
                 return RedirectToAction("Index");
             }
-
-            ViewBag.Error =
-                "Không thể thêm đơn hàng: "
-                + result;
-
-            return View(order);
+            catch (CouchDbException ex) { ModelState.AddModelError("", ex.Message); return View(view, order); }
         }
-
-        // =========================
-        // SUA - GET
-        // =========================
-
-        [HttpGet]
-        public async Task<ActionResult> Edit(
-            string id)
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<ActionResult> DeleteConfirm(string id, string rev)
         {
-            if (string.IsNullOrWhiteSpace(id))
+            try
             {
-                return RedirectToAction("Index");
+                await couchDbService.ReadDocument<Order>(id, "order");
+                await couchDbService.DeleteDocument(id, rev);
             }
-
-            string data =
-                await couchDbService.GetDocument(id);
-
-            Order order =
-                JsonConvert.DeserializeObject<Order>(
-                    data
-                );
-
-            if (order == null)
-            {
-                return RedirectToAction("Index");
-            }
-
-            return View(order);
-        }
-
-        // =========================
-        // SUA - POST
-        // =========================
-
-        [HttpPost]
-        public async Task<ActionResult> Edit(
-            Order order)
-        {
-            if (string.IsNullOrWhiteSpace(order._id))
-            {
-                ViewBag.Error =
-                    "Mã đơn hàng không được để trống.";
-
-                return View(order);
-            }
-
-            if (string.IsNullOrWhiteSpace(order.customerId))
-            {
-                ViewBag.Error =
-                    "Mã khách hàng không được để trống.";
-
-                return View(order);
-            }
-
-            if (order.items == null)
-            {
-                order.items =
-                    new List<OrderItem>();
-            }
-
-            decimal total =
-                0;
-
-            foreach (OrderItem item in order.items)
-            {
-                total =
-                    total
-                    + (item.quantity * item.price);
-            }
-
-            order.total =
-                total;
-
-            order.type =
-                "order";
-
-            string result =
-                await couchDbService.UpdateDocument(
-                    order._id,
-                    order
-                );
-
-            if (result.Contains("\"ok\":true"))
-            {
-                return RedirectToAction("Index");
-            }
-
-            ViewBag.Error =
-                "Không thể cập nhật đơn hàng: "
-                + result;
-
-            return View(order);
-        }
-
-        // =========================
-        // XOA - GET
-        // =========================
-
-        [HttpGet]
-        public async Task<ActionResult> Delete(
-            string id)
-        {
-            if (string.IsNullOrWhiteSpace(id))
-            {
-                return RedirectToAction("Index");
-            }
-
-            string data =
-                await couchDbService.GetDocument(id);
-
-            Order order =
-                JsonConvert.DeserializeObject<Order>(
-                    data
-                );
-
-            if (order == null)
-            {
-                return RedirectToAction("Index");
-            }
-
-            return View(order);
-        }
-
-        // =========================
-        // XOA - POST
-        // =========================
-
-        [HttpPost]
-        public async Task<ActionResult> DeleteConfirm(
-            string id,
-            string rev)
-        {
-            if (!string.IsNullOrWhiteSpace(id) &&
-                !string.IsNullOrWhiteSpace(rev))
-            {
-                await couchDbService.DeleteDocument(
-                    id,
-                    rev
-                );
-            }
-
+            catch (CouchDbException ex) { TempData["Error"] = ex.Message; }
             return RedirectToAction("Index");
         }
-
     }
 }

@@ -71,6 +71,7 @@
     "Product",
     FormMethod.Post))
 {
+    @Html.AntiForgeryToken()
     @Html.Hidden(
         "id",
         Model._id
