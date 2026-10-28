@@ -56,3 +56,31 @@ Ngày khởi tạo hồ sơ: 28/10/2026. **Trạng thái: đã triển khai mã 
 - **Bước tiếp theo:** thiết lập biến môi trường với credential mới trên máy; khởi động lại VS/IIS Express; chạy script hai lần trên DB demo riêng, kiểm thử CRUD/revision/lỗi theo tests/README.md; bổ sung ảnh Fauxton trước nghiệm thu P0/P1.
 - **Kiểm tra trước commit:** git diff --check đạt; quét mẫu bí mật trên 35 file ứng viên không có phát hiện. Không in credential, không đưa bin/obj/.vs hoặc dữ liệu thật vào commit. Đây là quét mã hiện tại, không phải kiểm toán/làm sạch lịch sử Git.
 - **Git/PR:** không push, không merge và không gửi bình luận PR theo yêu cầu mới nhất. Commit tiếng Việt sau diff/secret scan; hồ sơ AGENTS/ROADMAP/RUBRIC và .github có sẵn vẫn được giữ nguyên, chưa đưa vào commit này.
+
+### 2026-10-28 – Kiểm tra điều kiện tích hợp P0/P1 và hướng dẫn thiết lập Windows
+- **Nhánh/đầu phiên:** codex/nosql-completion, hai commit fa57030 và 27d427f; không có thay đổi tracked chưa commit. Giữ nguyên .github/ và tài liệu có sẵn chưa tracked. RUBRIC_CHECKLIST.md được cập nhật/đưa vào commit theo yêu cầu cụ thể của chủ repo lần này.
+- **Đã làm:** đọc lại AGENTS.md, ROADMAP_NOSQL.md, CODEX_PROGRESS.md, RUBRIC_CHECKLIST.md, tests/README.md và script khởi tạo. Thêm chẩn đoán chỉ đọc scripts/Test-CouchDbConnection.ps1: cờ có/không của biến ở ba scope, health local, DB/index có xác thực khi đủ cấu hình, mã thoát 0/1/2; không in giá trị biến, raw response/error hoặc Authorization. Bổ sung hướng dẫn Environment Variables trên Windows, cách nhận biến mới, tạo DB/index/seed không ghi đè và bảng kết quả PASS/FAIL/NOT RUN.
+- **Files thay đổi:** scripts/Test-CouchDbConnection.ps1, tests/Test-ConnectionDiagnostic.py, tests/README.md, CODEX_PROGRESS.md, RUBRIC_CHECKLIST.md. Không sửa code ứng dụng trong bước này vì chưa phát hiện lỗi ứng dụng mới qua các ca đã chạy.
+- **Liên quan rubric:** 5a/5b/5c/5d, 8, 9b/9c/9d: chỉ ghi bằng chứng từng phần, chưa nghiệm thu tích hợp đầy đủ.
+
+| Nhóm | Ca kiểm tra | Kết quả thực tế |
+|---|---|---|
+| Build thật | MSBuild VS 2022 Community, Debug, MvcBuildViews=true | PASS, exit 0, gồm Razor |
+| Giả lập | Run-SmokeTests.ps1 | PASS, exit 0, 44 assertion; không phải CouchDB thật |
+| Giả lập | Test-Initializer.py | PASS, exit 0; hai lần seed, index/bốn doc liên kết, giữ dữ liệu cũ, lỗi 401 |
+| Giả lập | Test-ConnectionDiagnostic.py | PASS, exit 0; thiếu cấu hình exit 2; HTTP 200/index đúng exit 0; 401 exit 1; không in giá trị xác thực giả |
+| IIS Express thật | Test-WebSmoke.py tại localhost:52515 | PASS, exit 0; bảy GET HTTP 200, bốn POST invalid có validation, POST thiếu token bị chặn HTTP 500 theo MVC5 |
+| CouchDB thật, chỉ đọc | GET /, /_up, /_session tại 127.0.0.1:5984 | PASS, HTTP 200; phiên anonymous không có _admin |
+| Điều kiện DB sẵn sàng | GET /qlbanhang chưa xác thực | FAIL, HTTP 404; chưa có bằng chứng DB dùng được bằng tài khoản ứng dụng |
+| Cấu hình Windows | COUCHDB_URL/DATABASE/USERNAME/PASSWORD tại Process/User/Machine | FAIL điều kiện sẵn sàng: cả 12 cờ configured=False; không in giá trị |
+| Chẩn đoán môi trường thật | Test-CouchDbConnection.ps1 | PASS health; NOT RUN kiểm tra DB/index có xác thực, exit 2 vì thiếu biến |
+| Tích hợp CouchDB thật | Tạo DB/index/seed, chạy seed lần hai, Mango query | NOT RUN: thiếu thông tin xác thực mới; không thử ghi bằng anonymous |
+| Tích hợp CouchDB thật | CRUD Customer, Product, Order, Delivery; revision/xung đột/tham chiếu | NOT RUN: thiếu thông tin xác thực mới và DB chưa sẵn sàng |
+| Tích hợp Shipping | Lọc Delivery shipping và đối chiếu dữ liệu CouchDB | NOT RUN; Shipping không có CRUD riêng |
+| Giao diện trực quan | Kiểm tra bằng thao tác trình duyệt/ảnh màn hình | NOT RUN; đã kiểm thử HTML/form HTTP qua IIS, chưa đánh giá bố cục trực quan |
+
+- **Còn thiếu / lý do chưa hoàn thành P0/P1:** chưa có cấu hình mới ở Process/User/Machine kể cả kiểm tra lại cuối bước. Đã yêu cầu chủ repo thiết lập riêng trên Windows, không gửi tài khoản/mật khẩu vào chat. Chưa xác minh quyền tạo DB/index, quyền đọc/ghi ứng dụng và single-node bằng tài khoản mới. Không suy đoán hay tái sử dụng credential cũ; không đổi mật khẩu/quyền, không xóa DB hoặc dữ liệu có sẵn.
+- **Bước chủ repo cần làm:** theo tests/README.md, tạo bốn User variables bằng giao diện Windows, đóng/mở lại VS/IIS/terminal/Codex; chạy chẩn đoán, khởi tạo hai lần bằng tài khoản đủ quyền nếu DB chưa tồn tại, sau đó chuyển sang tài khoản ứng dụng phù hợp. Chỉ thông báo đã thiết lập, không gửi giá trị. Chạy checklist CRUD trên dữ liệu giả, ghi bằng chứng thực tế trước nghiệm thu.
+- **An toàn:** vẫn cần chủ repo đổi mật khẩu đã lộ, Private repo và phối hợp xử lý lịch sử trước khi chia sẻ. Không bắt đầu P2; kết luận hiện tại là thiếu điều kiện kiểm thử tích hợp, không phải PASS CRUD thật.
+- **Git/PR:** tạo commit tiếng Việt trên nhánh hiện tại sau diff/secret scan. Không push/merge hoặc gửi bình luận PR theo yêu cầu phiên này.
+- **Kiểm tra trước commit:** git diff --check PASS; quét mẫu bí mật trên cả 5 file thay đổi không có phát hiện; PowerShell parser báo 0 lỗi cho script chẩn đoán. Không có bin/obj/.vs hoặc dữ liệu thật trong danh sách commit; không kiểm toán hay viết lại lịch sử Git.

@@ -35,3 +35,48 @@ Test web xác minh cảnh báo kết nối, View tạo đơn, validation bằng 
 10. Lưu kết quả thật, phiên bản môi trường và ảnh Fauxton đã che thông tin nhạy cảm vào nhật ký trước khi nghiệm thu P0/P1.
 
 Còn ngoài phạm vi P0/P1: login/role ứng dụng, quy tắc chuyển trạng thái đầy đủ, ràng buộc tham chiếu khi xóa, bộ seed 10/20/20/15, import/export, backup/restore, demo Fauxton và báo cáo rubric. Không mở triển khai dùng chung trước khi hoàn thiện phân quyền P4.
+
+## Thiết lập biến môi trường trên Windows, không ghi mật khẩu vào lệnh
+
+1. Nếu chưa thực hiện, đổi mật khẩu CouchDB cũ trong giao diện quản trị bằng thông tin bạn tự quản lý. Không dùng lại thông tin từng có trong Git. Chủ repo cần chuyển repo sang Private và phối hợp xử lý lịch sử trước khi chia sẻ.
+2. Nhấn **Win+R**, nhập `rundll32 sysdm.cpl,EditEnvironmentVariables`, chọn **User variables → New**. Không cần sửa Machine variables.
+3. Tạo bốn biến dưới đây. Nhập tài khoản/mật khẩu mới trực tiếp trong hộp thoại Windows; không gõ vào lệnh PowerShell, source, Web.config hoặc chat. Không chụp màn hình hộp thoại chứa thông tin xác thực.
+
+| Tên biến | Giá trị cần nhập riêng trên máy |
+|---|---|
+| COUCHDB_URL | `http://127.0.0.1:5984` |
+| COUCHDB_DATABASE | `qlbanhang` để kiểm tra DB mục tiêu; dùng `qlbanhang_demo_p01` nếu muốn tách bộ thử |
+| COUCHDB_USERNAME | Tên tài khoản CouchDB mới mà bạn đã xác minh đăng nhập được |
+| COUCHDB_PASSWORD | Mật khẩu mới của tài khoản đó; không đưa vào tài liệu |
+
+Biến môi trường là cấu hình riêng của máy, không phải kho lưu trữ được mã hóa. Giữ quyền truy cập tài khoản Windows phù hợp; không chạy `Get-ChildItem Env:COUCHDB*`, `echo` biến hay bật transcript/debug khi xử lý thông tin xác thực.
+
+4. Đóng VS/IIS Express và mở lại từ Windows để nhận biến mới. Nếu terminal/Codex đang chạy từ trước, khởi động lại ứng dụng mở terminal/Codex để tiến trình nhận biến mới. `.env.example` chỉ là mẫu; ứng dụng không tự nạp `.env`.
+5. Mở PowerShell mới trong repo, chạy chẩn đoán chỉ đọc:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Test-CouchDbConnection.ps1
+```
+
+Script chỉ in tên biến, cờ configured và HTTP status; không in giá trị hoặc raw error/response. Exit 0 = đọc được DB/index đúng; exit 1 = kiểm tra xác thực/cấu hình/index thất bại; exit 2 = chưa có đủ biến trong Process, không chạy kiểm tra có xác thực. HTTP 200 của health không chứng minh quyền tạo DB; HTTP 404 chưa xác thực không thay cho kiểm tra bằng tài khoản mới.
+
+6. Nếu `qlbanhang` chưa tồn tại, dùng tài khoản được cấp quyền tạo DB trong Fauxton hoặc chạy script sau trong phiên có đủ biến. Nếu tài khoản ứng dụng không có quyền tạo DB/index, bạn cần thực hiện bước này bằng tài khoản quản trị mới của mình. Không suy đoán thông tin đăng nhập và không tự mở quyền anonymous:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Initialize-CouchDb.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Initialize-CouchDb.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Test-CouchDbConnection.ps1
+```
+
+Script dùng tên DB trong biến môi trường, tạo index `type-id` và bốn tài liệu giả `demo-*`; không xóa DB hoặc tài liệu và không ghi đè ID có sẵn. Nếu dùng Fauxton để tạo DB thủ công, vẫn cần chạy script để tạo index và dữ liệu mẫu. Xác minh Documents/Indexes sau khi chạy; không coi kết quả HTTP giả lập là bằng chứng DB thật.
+
+7. Khôi phục tài khoản ứng dụng đã được cấp quyền database nếu đã dùng tài khoản quản trị cho bước khởi tạo; mở lại VS/IIS Express, chạy checklist CRUD thật ở trên. Shipping là trang đọc/lọc Delivery có status `shipping`, không có CRUD riêng: kiểm thử bằng cách tạo/sửa Delivery mẫu rồi đối chiếu trang Shipping.
+8. Khi cấu hình xong, chỉ báo **“đã thiết lập biến môi trường”**; không gửi giá trị tài khoản/mật khẩu. Nếu bị 401/403, kiểm tra đăng nhập và quyền trong Fauxton trước; không gửi raw response hay Authorization header.
+
+## Kết quả kiểm tra gần nhất (28/10/2026)
+
+- **PASS:** build gồm Razor; 44 assertion giả lập; script initializer trên HTTP stub; kiểm tra HTML/form qua IIS Express; health CouchDB thật.
+- **FAIL điều kiện sẵn sàng:** bốn biến môi trường chưa cấu hình ở cả ba scope; `/qlbanhang` trả HTTP 404 khi chưa xác thực.
+- **NOT RUN tích hợp thật:** tạo DB/index/seed, Mango, CRUD Customer/Product/Order/Delivery, đối chiếu Shipping, quyền và conflict thật. Không có thông tin xác thực mới, không suy đoán hoặc thử lại mật khẩu cũ.
+
+Có thể kiểm tra lại chẩn đoán mà không ghi DB bằng lệnh ở trên. Kiểm thử chẩn đoán với HTTP stub: `python tests/Test-ConnectionDiagnostic.py`; đây là giả lập, không thay thế kiểm tra có xác thực với CouchDB thật. Chưa bắt đầu P2.
