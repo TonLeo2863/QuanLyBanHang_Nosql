@@ -14,7 +14,7 @@ Ngày khởi tạo hồ sơ: 28/10/2026. **Trạng thái mới nhất: kiểm th
 |---|---|---|---|---|
 | P0 – Môi trường/bảo mật | Kết nối/xác thực/khởi tạo thật PASS | Xem bản ghi tích hợp cuối tệp | Session đúng danh tính; DB/index HTTP 200; seed chạy lại giữ nguyên revision | Đổi mật khẩu cũ/Private/lịch sử: chưa xác nhận |
 | P1 – Lỗi nền tảng/CRUD | Kiểm thử kỹ thuật PASS | Xem bản ghi tích hợp cuối tệp | CRUD 4 loại qua IIS; revision, validation, Shipping/Dashboard, lỗi DB/credential PASS | Chưa có ảnh/kiểm tra bố cục; các chức năng P4 chưa thuộc nghiệm thu này |
-| P2 – DB/seed/schema | Chưa làm | — | — | — |
+| P2 – DB/seed/schema | PASS kỹ thuật | Commit P2 sau bản ghi | 100 seed thật, idempotency, tham chiếu/tổng, Mango/_explain | Ảnh Fauxton thuộc P3 |
 | P3 – Mango/Fauxton query | Chưa làm | — | — | — |
 | P4 – Nghiệp vụ/roles | Chưa làm | — | — | — |
 | P5 – Backup/tests | Chưa làm | — | — | — |
@@ -119,3 +119,9 @@ Ngày khởi tạo hồ sơ: 28/10/2026. **Trạng thái mới nhất: kiểm th
 - **Bước tiếp theo:** chủ repo xác nhận thay mật khẩu đã lộ/Private/phương án lịch sử; bổ sung demo Fauxton và các ca NOT RUN thích hợp. Sau đó triển khai nhóm công việc P2 theo roadmap.
 - **Git/PR:** tạo commit tiếng Việt trên nhánh hiện tại; không push, không merge, không gửi bình luận PR.
 - **Kiểm tra trước commit:** diff --check PASS; PowerShell parser 0 lỗi; cú pháp Python PASS. Secret scan 6 file (mẫu token/private key/URL chứa credential và đối chiếu kín mật khẩu đang cấu hình) không có phát hiện. Không đưa bin/obj/.vs, dữ liệu thật hoặc tài liệu chưa tracked có sẵn vào commit. Không quét/làm sạch lịch sử Git.
+
+### 2026-10-28 – P2: mô hình và 100 tài liệu demo
+- **Đã làm/files:** docs/DATABASE_DESIGN.md giải thích nhúng/tham chiếu và revision; scripts/couch.py client lỗi có kiểm soát; Seed-Demo.py tạo 20 khách/30 sản phẩm/30 đơn/20 giao hàng, 9 JSON index; With-CouchEnvironment.ps1 nạp riêng biến User khi Process thiếu; tests/Test-P2.py và công cụ Review-Staged.py kiểm tra bí mật/artifact trước commit.
+- **Test thật:** Test-P2.py PASS: lần đầu thêm 100 doc, lần hai thêm 0; toàn bộ nội dung và revision giữ nguyên; tham chiếu đúng loại, mỗi đơn ít nhất 2 item, tổng đúng; query sort và _explain chọn type-date PASS. Không sửa/xóa tài liệu có sẵn. Chưa thay code ứng dụng.
+- **Rubric:** 5a/5b/5c/5d/8 có thêm bằng chứng kỹ thuật; ảnh GUI NOT RUN. Giữ nguyên các file chưa tracked ban đầu. Không push/merge, chưa xác nhận an toàn lịch sử; single-node vẫn BLOCKED quyền API quản trị 403.
+- **Bước tiếp:** P3 bộ 5+5 truy vấn, hướng dẫn Fauxton/so sánh; sau đó P4/P5 theo yêu cầu liên tục.

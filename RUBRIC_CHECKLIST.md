@@ -69,3 +69,7 @@ Bảng này cập nhật kết quả mới nhất, thay cho tình trạng thiế
 Build gồm Razor PASS; 44 assertion giả lập PASS; initializer/diagnostic giả lập PASS. IIS với DB không tồn tại và mật khẩu thử sai PASS cảnh báo có kiểm soát, validation/CSRF. Không có FAIL còn tồn tại trong bộ tự động đã chạy cuối phiên; các ca NOT RUN không được tính PASS. Xem CODEX_PROGRESS.md, bản ghi “Tích hợp P0/P1 với CouchDB thật và IIS Express”, và hướng dẫn chạy lại tests/README.md. Chưa chuyển sang P2, chưa tuyên bố đạt đủ rubric.
 
 Kiểm tra quản trị bổ sung: `/_membership` trả HTTP 403 bằng tài khoản cấu hình (**FAIL quyền truy cập API quản trị**); single-node chưa được xác minh. Không tự nâng quyền; điều này không phủ định CRUD/DB/index đã PASS. Chủ repo cần kiểm tra Setup single-node bằng tài khoản quản trị trong Fauxton trước nghiệm thu P0 đầy đủ.
+
+### P2 – bằng chứng mới
+- PASS: 20 khách, 30 sản phẩm, 30 đơn nhiều item, 20 giao hàng giả; 9 index; seed chạy lại không đổi nội dung/revision; toàn bộ tham chiếu/tổng tiền trong bộ seed hợp lệ.
+- PASS: Mango sort và `_explain` thực tế chọn `type-date`. Mục 5b đã có đủ quy mô mới theo yêu cầu; ảnh document/index NOT RUN. Nguồn bằng chứng: tests/Test-P2.py và docs/DATABASE_DESIGN.md. Chưa tự chấm điểm.
